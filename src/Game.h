@@ -27,6 +27,7 @@ public:
 
 private:
     bool isRunning_ = true;
+    int  ticksLastFrame_ = 0;
 
     SDL_Window*   pWindow_   = nullptr;
     SDL_Renderer* pRenderer_ = nullptr;

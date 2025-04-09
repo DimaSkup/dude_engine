@@ -8,7 +8,7 @@
 # -lSDL2_ttf                    -- use ext lib to work with fonts
 # -lSDL2_mixer                  -- use ext lib to work with sounds
 build:
-	g++ -w -std=c++14 \
+	g++ -w -std=c++14 -Wfatal-errors \
 	./src/*.cpp \
 	-o game \
 	-I"./lib/lua" \

@@ -5,6 +5,8 @@
 #include "Game.h"
 #include "Constants.h"
 #include "Log.h"
+#include "../lib/glm/glm.hpp"
+
 
 Game::Game() : isRunning_(false)
 {
@@ -16,10 +18,8 @@ Game::~Game()
 
 ///////////////////////////////////////////////////////////
 
-float projectilePosX = 0.0f;
-float projectilePosY = 0.0f;
-constexpr float projectileVelocityX = 0.1f;
-constexpr float projectileVelocityY = 0.1f;
+glm::vec2 projectilePos      = glm::vec2(0, 0);
+glm::vec2 projectileVelocity = glm::vec2(20, 20);
 
 ///////////////////////////////////////////////////////////
 
@@ -90,8 +90,26 @@ void Game::ProcessInput()
 
 void Game::Update()
 {
-    projectilePosX += projectileVelocityX;
-    projectilePosY += projectileVelocityY;
+    // speep the execution until we reach the target frame time in ms
+    const int timeToWait = FRAME_TARGET_TIME - ((SDL_GetTicks() - ticksLastFrame_));
+
+    // only call delay if we are too fast to process this frame
+    if (timeToWait > 0 && timeToWait <= FRAME_TARGET_TIME)
+        SDL_Delay(timeToWait);
+
+    // difference in ticks from last frame converted to seconds
+    float deltaTime = (SDL_GetTicks() - ticksLastFrame_) * 0.001f; 
+
+    // set the new ticks count for the current frame to be used in the next pass
+    ticksLastFrame_ = SDL_GetTicks();
+ 
+    // clamp deltaTime to a maximum value
+    deltaTime = (deltaTime > FRAME_TARGET_TIME) ? FRAME_TARGET_TIME : deltaTime;
+
+
+    projectilePos = glm::vec2(
+        projectilePos.x + projectileVelocity.x * deltaTime,
+        projectilePos.y + projectileVelocity.y * deltaTime);
 }
 
 ///////////////////////////////////////////////////////////
@@ -101,7 +119,7 @@ void Game::Render()
     SDL_SetRenderDrawColor(pRenderer_, 21, 21, 21, 255);
     SDL_RenderClear(pRenderer_);
 
-    SDL_Rect projectile = {(int)projectilePosX, (int)projectilePosY, 10, 10 };
+    SDL_Rect projectile = {(int)projectilePos.x, (int)projectilePos.y, 10, 10 };
 
     SDL_SetRenderDrawColor(pRenderer_, 255, 255, 255, 255);
     SDL_RenderFillRect(pRenderer_, &projectile);
