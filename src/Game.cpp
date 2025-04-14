@@ -5,8 +5,15 @@
 #include "Game.h"
 #include "Constants.h"
 #include "Log.h"
+#include "EntityMgr.h"
 #include "../lib/glm/glm.hpp"
 
+
+// init static members
+EntityMgr s_EntityMgr;
+SDL_Renderer* Game::pRenderer_ = nullptr;
+
+///////////////////////////////////////////////////////////
 
 Game::Game() : isRunning_(false)
 {
@@ -15,11 +22,6 @@ Game::Game() : isRunning_(false)
 Game::~Game()
 {
 }
-
-///////////////////////////////////////////////////////////
-
-glm::vec2 projectilePos      = glm::vec2(0, 0);
-glm::vec2 projectileVelocity = glm::vec2(20, 20);
 
 ///////////////////////////////////////////////////////////
 
@@ -106,10 +108,9 @@ void Game::Update()
     // clamp deltaTime to a maximum value
     deltaTime = (deltaTime > FRAME_TARGET_TIME) ? FRAME_TARGET_TIME : deltaTime;
 
+    // TODO:
+    // call the EntityMgr::Update() to update all the entities
 
-    projectilePos = glm::vec2(
-        projectilePos.x + projectileVelocity.x * deltaTime,
-        projectilePos.y + projectileVelocity.y * deltaTime);
 }
 
 ///////////////////////////////////////////////////////////
@@ -119,10 +120,9 @@ void Game::Render()
     SDL_SetRenderDrawColor(pRenderer_, 21, 21, 21, 255);
     SDL_RenderClear(pRenderer_);
 
-    SDL_Rect projectile = {(int)projectilePos.x, (int)projectilePos.y, 10, 10 };
+    // TODO:
+    // call the EntityMgr::Render() to render all the entities
 
-    SDL_SetRenderDrawColor(pRenderer_, 255, 255, 255, 255);
-    SDL_RenderFillRect(pRenderer_, &projectile);
 
     SDL_RenderPresent(pRenderer_);
 }
@@ -136,5 +136,9 @@ void Game::Destroy()
     SDL_Quit();
 }
 
+///////////////////////////////////////////////////////////
 
+void Game::LoadLevel(const int levelNumber)
+{
+}
 

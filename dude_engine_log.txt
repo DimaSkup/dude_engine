@@ -1,8 +1,0 @@
-04/09/25 - 10:35PM| the log file is created!
----------------------------------
-
-[100376] ./src/Game.cpp: Initialize() (line: 28): Start of the game initialization
-[281796] ./src/Game.cpp: Initialize() (line: 59): The game is initialized!
-
-------------------------------------------------
-04/09/25 - 10:35PM| the end of the log file
