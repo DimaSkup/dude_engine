@@ -2,7 +2,7 @@
 #define ENTITY_H
 
 #include "EntityMgr.h"
-#include "Component.h"
+#include "IComponent.h"
 #include <vector>
 #include <string>
 
@@ -25,17 +25,19 @@ public:
     T& AddComponent(TArgs&&... args)
     {
         T* pNewComponent(new T(std::forward<TArgs>(args)...));  // create a new component object
-        pNewComponent->ownder = this;                           // setup an owner for this new component
+        pNewComponent->pOwner_ = this;                           // setup an owner for this new component
         components_.emplace_back(pNewComponent);                // store new component into the array of the entity components
         pNewComponent->Initialize();                             // and simply init this new component
 
         return *pNewComponent;
     }
 
+    void ListAllComponents() const;
+
 public:
     std::string name_;
     bool isActive_ = false;
-    std::vector<Component*> components_;
+    std::vector<IComponent*> components_;
 
 private:
     EntityMgr& enttMgr_;

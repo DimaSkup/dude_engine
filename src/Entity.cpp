@@ -21,7 +21,7 @@ Entity::Entity(EntityMgr& mgr, const std::string& name) :
 void Entity::Update(const float deltaTime)
 {
     // update each component of this entity
-    for (Component* pComponent : components_)
+    for (IComponent* pComponent : components_)
     {
         pComponent->Update(deltaTime);
     }
@@ -32,7 +32,7 @@ void Entity::Update(const float deltaTime)
 void Entity::Render()
 {
     // render each component of entity (if necessary)
-    for (Component* pComponent : components_)
+    for (IComponent* pComponent : components_)
     {
         pComponent->Render();
     }
@@ -43,4 +43,17 @@ void Entity::Render()
 void Entity::Destroy()
 {
     isActive_ = false;
+}
+
+///////////////////////////////////////////////////////////
+
+void Entity::ListAllComponents() const
+{
+    printf("Components:\n");
+
+    for (IComponent* pComp : components_)
+    {
+        printf("\t%s\n", pComp->GetName()); 
+    }
+    printf("\n");
 }

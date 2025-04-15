@@ -17,23 +17,18 @@ public:
     Game();
     ~Game();
     
-    void Initialize(const int wndWidth, const int wndHeight);
+    void Initialize();
     void ProcessInput();
     void Update();
     void Render();
     void Destroy();
     void LoadLevel(const int levelNumber);
 
-
     inline bool IsRunning() const { return isRunning_; }
-
-    static SDL_Renderer* pRenderer_;
 
 private:
     bool isRunning_ = true;
     int  ticksLastFrame_ = 0;
-
-    SDL_Window*   pWindow_   = nullptr;
 };
 
 #endif

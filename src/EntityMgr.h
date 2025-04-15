@@ -8,14 +8,17 @@
 
 #include "Types.h"
 #include "Entity.h"
-#include "Component.h"
-
+#include "IComponent.h"
+//#include "Components/TransformComponent.h"
 #include <string>
 #include <vector>
+
 
 class EntityMgr
 {
 public:
+    EntityMgr();
+
     void ClearData();
     void Update(const float deltaTime);
     void Render();
@@ -26,8 +29,15 @@ public:
     Entity& AddEntity(const std::string& enttName);
     const std::vector<Entity*>& GetEntities() const;
 
+    void ListAllEntities() const;
+
 private:
     std::vector<Entity*> entities_;
 };
+
+// =================================================================================
+// Declare a global instance of the Entity manager
+// =================================================================================
+extern EntityMgr g_EntityMgr;
 
 #endif

@@ -80,7 +80,7 @@ void CloseLogger(void)
 
 ///////////////////////////////////////////////////////////
 
-void LogPrint(const char* format, ...)
+void LogMsg(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -99,7 +99,7 @@ void LogPrint(const char* format, ...)
 
 ///////////////////////////////////////////////////////////
 
-void LogDebug(const char* format, ...)
+void LogDbg(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -115,7 +115,7 @@ void LogDebug(const char* format, ...)
 
 ///////////////////////////////////////////////////////////
 
-void LogError(const char* format, ...)
+void LogErr(const char* format, ...)
 {
     va_list args;
     va_start(args, format);

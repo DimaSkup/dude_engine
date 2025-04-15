@@ -3,6 +3,21 @@
 // Description: implementation of the EntityMgr functional
 // ==================================================================
 #include "EntityMgr.h"
+#include "Log.h"
+
+
+// init a global instance of the Entity manager
+EntityMgr g_EntityMgr;
+
+
+///////////////////////////////////////////////////////////
+
+EntityMgr::EntityMgr()
+{
+    LogDbg("constructor");
+}
+
+///////////////////////////////////////////////////////////
 
 void EntityMgr::ClearData()
 {
@@ -51,4 +66,15 @@ const std::vector<Entity*>& EntityMgr::GetEntities() const
 
 ///////////////////////////////////////////////////////////
 
+void EntityMgr::ListAllEntities() const
+{
+    printf("\n\n");
+    LogDbg(LOG_INFO, "components dump");
+
+    for (const Entity* pEntt : entities_)
+    {
+        printf("EntityName: %s\n", pEntt->name_.c_str());
+        pEntt->ListAllComponents();
+    }
+}
 

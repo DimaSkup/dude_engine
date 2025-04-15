@@ -3,15 +3,12 @@
 // Created:  08.04.2025 by DimaSkup
 // ==================================================================
 #include "Game.h"
+#include "../lib/glm/glm.hpp"
 #include "Constants.h"
 #include "Log.h"
 #include "EntityMgr.h"
-#include "../lib/glm/glm.hpp"
+#include "Components/TransformComponent.h"
 
-
-// init static members
-EntityMgr s_EntityMgr;
-SDL_Renderer* Game::pRenderer_ = nullptr;
 
 ///////////////////////////////////////////////////////////
 
@@ -25,40 +22,13 @@ Game::~Game()
 
 ///////////////////////////////////////////////////////////
 
-void Game::Initialize(const int wndWidth, const int wndHeight)
+void Game::Initialize()
 {
-    LogPrint(LOG_INFO, "Start of the game initialization");
+    LoadLevel(0);
 
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
-        LogError(LOG_INFO, "Error initializing SDL");
-        return;        
-    }
+    isRunning_ = true; 
 
-    pWindow_ = SDL_CreateWindow(
-        "dude_engine",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        wndWidth,
-        wndHeight,
-        SDL_WINDOW_BORDERLESS);
-
-    if (pWindow_ == nullptr)
-    {
-        LogError(LOG_INFO, "Error initializing window");
-        return;
-    }
-    
-    pRenderer_ = SDL_CreateRenderer(pWindow_, -1, 0);
-    if (pRenderer_ == nullptr)
-    {
-        LogError(LOG_INFO, "Error initializing renderer");
-        return;
-    }
-
-    isRunning_ = true;
-
-    LogPrint(LOG_INFO, "The game is initialized!");
+    LogMsg(LOG_INFO, "The game is initialized!");
 }
 
 ///////////////////////////////////////////////////////////
@@ -108,37 +78,39 @@ void Game::Update()
     // clamp deltaTime to a maximum value
     deltaTime = (deltaTime > FRAME_TARGET_TIME) ? FRAME_TARGET_TIME : deltaTime;
 
-    // TODO:
     // call the EntityMgr::Update() to update all the entities
-
+    g_EntityMgr.Update(deltaTime);
 }
 
 ///////////////////////////////////////////////////////////
 
 void Game::Render()
 {
-    SDL_SetRenderDrawColor(pRenderer_, 21, 21, 21, 255);
-    SDL_RenderClear(pRenderer_);
-
-    // TODO:
+    if (g_EntityMgr.HasNoEntities())
+        return;
+    
     // call the EntityMgr::Render() to render all the entities
-
-
-    SDL_RenderPresent(pRenderer_);
+    g_EntityMgr.Render();
 }
 
 ///////////////////////////////////////////////////////////
 
 void Game::Destroy()
 {
-    SDL_DestroyRenderer(pRenderer_);
-    SDL_DestroyWindow(pWindow_);
-    SDL_Quit();
 }
 
 ///////////////////////////////////////////////////////////
 
 void Game::LoadLevel(const int levelNumber)
 {
+    // add entities and add components to the entities
+    Entity& entt1 = g_EntityMgr.AddEntity("projectile");
+    entt1.AddComponent<TransformComponent>(0,0, 20,20, 32,32,1);
+
+    Entity& entt2 = g_EntityMgr.AddEntity("projectile2");
+    entt2.AddComponent<TransformComponent>(100,0, 10,10, 16,16,1);
+
+    Entity& entt3 = g_EntityMgr.AddEntity("projectile3");
+    entt3.AddComponent<TransformComponent>(500,500, -10,-10, 40,40,1);
 }
 

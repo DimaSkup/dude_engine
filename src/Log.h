@@ -37,8 +37,8 @@ void SetConsoleColor(const char* keyColor);
 void ResetConsoleColor();
 
 void PrintHelper(const char* levText, const char* text);
-void LogPrint(const char* format, ...);
-void LogDebug(const char* format, ...);
-void LogError(const char* format, ...);
+void LogMsg(const char* format, ...);
+void LogDbg(const char* format, ...);
+void LogErr(const char* format, ...);
 
 #endif

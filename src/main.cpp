@@ -1,25 +1,36 @@
 #include "Log.h"
 #include "Constants.h"
 #include "Game.h"
+#include "Render.h"
+#include "EntityMgr.h"
 #include <iostream>
 
 int main(int argc, char* args[])
 {
     InitLogger();
 
-    Game* pGame = new Game();
-    std::cout << "Game is running..." << std::endl;
+    Render render;
+    Game game;
+    
+    render.Initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    game.Initialize();
 
-    pGame->Initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    LogMsg("Game is running...");
 
-    while (pGame->IsRunning())
+    while (game.IsRunning())
     {
-        pGame->ProcessInput();
-        pGame->Update();
-        pGame->Render();
+        game.ProcessInput();
+        game.Update();
+
+        render.Begin();
+        game.Render();
+        render.End();
     }
 
-    pGame->Destroy();
+    g_EntityMgr.ListAllEntities();
+
+    game.Destroy();
+    render.Shutdown();
     CloseLogger();
 
     return 0;
