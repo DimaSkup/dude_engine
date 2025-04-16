@@ -7,18 +7,12 @@
 #ifndef TEXTURE_MGR_H
 #define TEXTURE_MGR_H
 
-#include "Game.h"
+#include <SDL2/SDL.h>
 
 class TextureMgr
 {
 public:
     static SDL_Texture* LoadTexture(const char* fileName);
-
-    static void Draw(
-        SDL_Texture* pTexture, 
-        const SDL_Rect& srcRect,
-        const SDL_Rect& dstRect,
-        const SDL_RendererFlip& flip);
 };
 
 // ==================================================================

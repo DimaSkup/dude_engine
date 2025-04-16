@@ -7,8 +7,9 @@
 #include "Constants.h"
 #include "Log.h"
 #include "EntityMgr.h"
+#include "AssetMgr.h"
 #include "Components/TransformComponent.h"
-
+#include "Components/SpriteComponent.h"
 
 ///////////////////////////////////////////////////////////
 
@@ -103,14 +104,13 @@ void Game::Destroy()
 
 void Game::LoadLevel(const int levelNumber)
 {
+    // start loading new assets into the Asset Manager list
+    const char* textureFilePath = "assets/images/tank-big-right.png";
+    g_AssetMgr.AddTexture("tank-image", textureFilePath);
+
     // add entities and add components to the entities
-    Entity& entt1 = g_EntityMgr.AddEntity("projectile");
-    entt1.AddComponent<TransformComponent>(0,0, 20,20, 32,32,1);
-
-    Entity& entt2 = g_EntityMgr.AddEntity("projectile2");
-    entt2.AddComponent<TransformComponent>(100,0, 10,10, 16,16,1);
-
-    Entity& entt3 = g_EntityMgr.AddEntity("projectile3");
-    entt3.AddComponent<TransformComponent>(500,500, -10,-10, 40,40,1);
+    Entity& enttTank = g_EntityMgr.AddEntity("tank");
+    enttTank.AddComponent<TransformComponent>(0,0, 20,20, 32,32,1);
+    enttTank.AddComponent<SpriteComponent>("tank-image");
 }
 

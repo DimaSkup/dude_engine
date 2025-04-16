@@ -73,3 +73,34 @@ void Render::End()
 {
     SDL_RenderPresent(g_pRenderer);
 }
+
+///////////////////////////////////////////////////////////
+
+void Render::DrawRectFilled(
+    const int posX,
+    const int posY,
+    const int width,
+    const int height,
+    const int r,             // red   channel of RGBA
+    const int g,             // green channel of RGBA
+    const int b,             // blue  channel of RGBA
+    const int a)             // alpha channel of RGBA
+{
+    SDL_Rect rect = { posX, posY, width, height };
+    SDL_SetRenderDrawColor(g_pRenderer, r, g, b, a);
+    SDL_RenderFillRect(g_pRenderer, &rect);
+}
+
+///////////////////////////////////////////////////////////
+
+void Render::DrawRectTextured(
+    SDL_Texture* pTexture,
+    const SDL_Rect& srcRect,
+    const SDL_Rect& dstRect,
+    const SDL_RendererFlip& flip)
+{
+    if (!pTexture)
+        LogErr(LOG_INFO, "input texture == nullptr");
+
+    SDL_RenderCopyEx(g_pRenderer, pTexture, &srcRect, &dstRect, 0.0, NULL, flip); 
+}

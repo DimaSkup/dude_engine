@@ -71,10 +71,11 @@ void EntityMgr::ListAllEntities() const
     printf("\n\n");
     LogDbg(LOG_INFO, "components dump");
 
-    for (const Entity* pEntt : entities_)
+    for (int i = 0; const Entity* pEntt : entities_)
     {
-        printf("EntityName: %s\n", pEntt->m_Name.c_str());
+        printf("Entity[%d]: EntityName: %s\n", i, pEntt->m_Name.c_str());
         pEntt->ListAllComponents();
+        ++i;
     }
 }
 

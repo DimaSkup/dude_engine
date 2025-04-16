@@ -53,7 +53,7 @@ void Entity::ListAllComponents() const
 
     for (IComponent* pComp : m_Components)
     {
-        printf("\t%s\n", pComp->GetName()); 
+        printf("\tComponent<%s>\n", pComp->GetName()); 
     }
     printf("\n");
 }

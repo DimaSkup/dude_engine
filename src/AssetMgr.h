@@ -7,8 +7,8 @@
 #ifndef ASSET_MGR_H
 #define ASSET_MGR_H
 
-#include "TextureMgr.h"
 #include "EntityMgr.h"
+#include <SDL2/SDL.h>
 #include <map>
 #include <string>
 

@@ -12,7 +12,7 @@ class Entity;
 class IComponent
 {
 public:
-    Entity* pOwner_ = nullptr;
+    Entity* m_pOwner = nullptr;
 
     virtual ~IComponent() {}
     virtual void Initialize() {}

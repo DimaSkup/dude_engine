@@ -29,52 +29,38 @@ public:
         const int height, 
         const int scale)
         :
-        position_(posX, posY),
-        velocity_(velX, velY),
-        width_(width),
-        height_(height),
-        scale_(scale) {}
+        m_Position(posX, posY),
+        m_Velocity(velX, velY),
+        m_Width(width),
+        m_Height(height),
+        m_Scale(scale) {}
 
     virtual ~TransformComponent() {}
 
     ///////////////////////////////////////////////////////
 
     virtual void Initialize() override {}
+    virtual void Render() override {}
 
     ///////////////////////////////////////////////////////////
 
     virtual void Update(const float deltaTime) override
     {
         // update the position/velocity as a function of deltaTime
-        position_ += (velocity_ * deltaTime);
+        m_Position += (m_Velocity * deltaTime);
     }
 
     ///////////////////////////////////////////////////////////
 
-    virtual void Render() override
-    {
-        SDL_Rect enttRect = 
-        {
-            (int)position_.x,
-            (int)position_.y,
-            width_,
-            height_
-        };
 
-        SDL_SetRenderDrawColor(g_pRenderer, 255, 255, 255, 255);
-        SDL_RenderFillRect(g_pRenderer, &enttRect);
-    }
-
-    virtual const char* GetName() const override { return "Component<TransformComponent>"; }
+    virtual const char* GetName() const override { return "TransformComponent"; }
 
 public:
-    glm::vec2 position_;
-    glm::vec2 velocity_;
-    int width_ = 0;
-    int height_ = 0;
-    int scale_ = 0;
-
-    char componentName_[48]{'\0'};
+    glm::vec2 m_Position;
+    glm::vec2 m_Velocity;
+    int m_Width = 0;
+    int m_Height = 0;
+    int m_Scale = 0;
 };
 
 #endif

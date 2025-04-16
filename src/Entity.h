@@ -23,24 +23,38 @@ public:
 
     inline bool IsActive() const { return m_IsActive; }
 
+    ///////////////////////////////////////////////////////
+
     template <typename T, typename... TArgs>
     T& AddComponent(TArgs&&... args)
     {
-        T* pNewComponent(new T(std::forward<TArgs>(args)...));  // create a new component object
-        pNewComponent->pOwner_ = this;                          // setup an owner for this new component
-        m_Components.emplace_back(pNewComponent);               // store new component into the array of the entity components
+        T* pNewComponent(new T(std::forward<TArgs>(args)...));   // create a new component object
+        pNewComponent->m_pOwner = this;                          // setup an owner for this new component
+        m_Components.emplace_back(pNewComponent);                // store new component into the array of the entity components
         m_ComponentTypeMap[&typeid(*pNewComponent)] = pNewComponent; // make pair: [component_type => component_ptr]                                                            
-        pNewComponent->Initialize();                            // and simply init this new component
+        pNewComponent->Initialize();                             // and simply init this new component
 
         return *pNewComponent;
     }
 
+    ///////////////////////////////////////////////////////
+    
     template <typename T>
     T* GetComponent() 
     {
         return static_cast<T*>(m_ComponentTypeMap[&typeid(T)]);
     }
 
+    ///////////////////////////////////////////////////////
+    
+    template <typename T>
+    bool HasComponent() const 
+    {
+        return m_ComponentTypeMap.find(&typeid(T)) != m_ComponentTypeMap.end();
+    }
+
+    ///////////////////////////////////////////////////////
+    
     void ListAllComponents() const;
 
 public:
