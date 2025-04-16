@@ -15,17 +15,24 @@
 class AssetMgr
 {
 public:
+    AssetMgr() {}
     AssetMgr(EntityMgr* pEnttMgr);
     ~AssetMgr();
 
+    void SetEntityMgr(EntityMgr* pEnttMgr);
     void ClearData();
 
     void AddTexture(const char* textureID, const char* filePath);
     SDL_Texture* GetTexture(const char* textureID);
 
 private:
-    EntityMgr* pEnttMgr_ = nullptr;
-    std::map<std::string, SDL_Texture*> textures_;
+    EntityMgr*                          m_pEnttMgr = nullptr;
+    std::map<std::string, SDL_Texture*> m_Textures;
 };
+
+// ==================================================================
+// Declare global instance of the Asset Manager
+// ==================================================================
+extern AssetMgr g_AssetMgr;
 
 #endif

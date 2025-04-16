@@ -73,7 +73,7 @@ void EntityMgr::ListAllEntities() const
 
     for (const Entity* pEntt : entities_)
     {
-        printf("EntityName: %s\n", pEntt->name_.c_str());
+        printf("EntityName: %s\n", pEntt->m_Name.c_str());
         pEntt->ListAllComponents();
     }
 }

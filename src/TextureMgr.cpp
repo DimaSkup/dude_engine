@@ -1,6 +1,11 @@
 #include "TextureMgr.h"
 #include "Render.h"
 
+
+// init global instance of the Texture Manager
+TextureMgr g_TextureMgr;
+
+///////////////////////////////////////////////////////////
 SDL_Texture* TextureMgr::LoadTexture(const char* fileName)
 {
     SDL_Surface* pSurface = IMG_Load(fileName);

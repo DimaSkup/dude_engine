@@ -21,4 +21,9 @@ public:
         const SDL_RendererFlip& flip);
 };
 
+// ==================================================================
+// Declare global instance of the Texture Manager
+// ==================================================================
+extern TextureMgr g_TextureMgr;
+
 #endif
