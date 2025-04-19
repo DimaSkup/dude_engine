@@ -105,12 +105,21 @@ void Game::Destroy()
 void Game::LoadLevel(const int levelNumber)
 {
     // start loading new assets into the Asset Manager list
-    const char* textureFilePath = "assets/images/tank-big-right.png";
-    g_AssetMgr.AddTexture("tank-image", textureFilePath);
+    g_AssetMgr.AddTexture("tank-image", "assets/images/tank-big-right.png");
+    g_AssetMgr.AddTexture("chopper-image", "assets/images/chopper-spritesheet.png");
+    g_AssetMgr.AddTexture("radar-image", "assets/images/radar.png");
 
     // add entities and add components to the entities
     Entity& enttTank = g_EntityMgr.AddEntity("tank");
-    enttTank.AddComponent<TransformComponent>(0,0, 20,20, 32,32,1);
+    enttTank.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
     enttTank.AddComponent<SpriteComponent>("tank-image");
+
+    Entity& enttChopper = g_EntityMgr.AddEntity("chopper");
+    enttChopper.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 1);
+    enttChopper.AddComponent<SpriteComponent>("chopper-image", 2, 90, true, false);
+
+    Entity& enttRadar = g_EntityMgr.AddEntity("radar");
+    enttRadar.AddComponent<TransformComponent>(720, 15, 0, 0, 64, 64, 1);
+    enttRadar.AddComponent<SpriteComponent>("radar-image", 8, 150, false, true);
 }
 

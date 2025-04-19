@@ -1,33 +1,108 @@
+// ==================================================================
+// Filename:    SpriteComponent.h
+// Description: component for sprites and sprites animations
+//
+// Created:     04.2025 by DimaSkup
+// ==================================================================
 #ifndef SPRITE_COMPONENT_H
 #define SPRITE_COMPONENT_H
 
+#include "../Types.h"
+#include "../StrHelper.h"
 #include "../Log.h"
 #include "../IComponent.h"
 #include "../AssetMgr.h"
 #include "../Render.h"
+#include "../Animation.h"
 #include "TransformComponent.h"
 #include <SDL2/SDL.h>
-
 
 class SpriteComponent : public IComponent 
 {
 public:
-    SpriteComponent(const char* spriteFilePath)
+
+    SpriteComponent(const char* assetTextureID) :
+        m_IsAnimated(false),
+        m_IsFixed(false)
     {
-        if (!spriteFilePath || spriteFilePath[0] == '\0')
-            LogErr(LOG_INFO, "invalid input file path to sprite");
+        // a constructor for static (not animated sprites)
 
-        sprintf(g_String, "init sprite component with sprite path: %s", spriteFilePath);
-        LogDbg(LOG_INFO, g_String);
+        if (IsStrEmpty(assetTextureID))
+            LogErr(LOG_INFO, "input asset texture ID is empty");
 
-        SetTexture(spriteFilePath);
+        SetTexture(assetTextureID);
+    }
+
+    ///////////////////////////////////////////////////////
+    
+    SpriteComponent(
+        const char* assetTextureID, 
+        const uint numFrames,
+        const uint animationSpeed,
+        const bool hasDirections,
+        const bool isFixed)
+        :
+        m_NumFrames(numFrames),
+        m_AnimationSpeed(animationSpeed),
+        m_IsAnimated(true),
+        m_IsFixed(isFixed)
+    {
+        // a constructor for animated sprites
+
+        if (IsStrEmpty(assetTextureID))
+            LogErr("input asset texture ID is empty");
+
+        if (hasDirections)
+        {
+            // separate animation data container for each direction
+            Animation down(0, numFrames, animationSpeed);
+            Animation right(1, numFrames, animationSpeed);
+            Animation left(2, numFrames, animationSpeed);
+            Animation up(3, numFrames, animationSpeed);
+
+            // add animations into map to be able to switch btw them
+            m_Animations.emplace("DownAnimation", down);
+            m_Animations.emplace("RightAnimation", right);
+            m_Animations.emplace("LeftAnimation", left);
+            m_Animations.emplace("UpAnimation", up);
+            
+            m_AnimationIdx = 0;
+            m_CurrAnimationName = "DownAnimation";
+        }
+        else
+        {
+            Animation singleAnimation(0, numFrames, animationSpeed);
+
+            const char* animKey = "SingleAnimation";
+            const auto& res = m_Animations.emplace(animKey, singleAnimation);
+            if (!res.second)
+                LogErr("didn't manage to add a single animation into the map of animations by key: %s", animKey);
+
+            m_AnimationIdx = 0;
+            m_CurrAnimationName = animKey;
+        }
+
+        SetTexture(assetTextureID);
+        Play(m_CurrAnimationName);
+    }
+    
+    ///////////////////////////////////////////////////////
+
+    void Play(const std::string& animationName)
+    {
+        const Animation& anim = m_Animations[animationName];
+
+        m_NumFrames         = anim.m_NumFrames;
+        m_AnimationIdx      = anim.m_Idx; 
+        m_AnimationSpeed    = anim.m_AnimationSpeed;
+        m_CurrAnimationName = animationName; 
     }
 
     ///////////////////////////////////////////////////////
     
     void SetTexture(const char* assetTextureID)
     {
-        if (!assetTextureID || assetTextureID[0] == '\0')
+        if (IsStrEmpty(assetTextureID))
         {
             LogErr(LOG_INFO, "input asset texture ID is empty");
             return;
@@ -36,8 +111,10 @@ public:
         m_pTexture = g_AssetMgr.GetTexture(assetTextureID); 
     }
 
-    ///////////////////////////////////////////////////////
 
+    // ==============================================================
+    // Virtual methods
+    // ==============================================================
     virtual void Initialize() override
     {
         m_pTransform = m_pOwner->GetComponent<TransformComponent>();
@@ -51,6 +128,14 @@ public:
     
     virtual void Update(const float deltaTime) override
     {
+        // update the animation
+        if (m_IsAnimated)
+        {
+            m_SrcRect.x = m_SrcRect.w * (int)((SDL_GetTicks() / m_AnimationSpeed) % m_NumFrames);
+        }
+        m_SrcRect.y = m_AnimationIdx * m_pTransform->m_Height;
+
+        // update the position onto the screen
         m_DstRect.x = (int)m_pTransform->m_Position.x;
         m_DstRect.y = (int)m_pTransform->m_Position.y;
         m_DstRect.w = m_pTransform->m_Width  * m_pTransform->m_Scale;
@@ -66,7 +151,10 @@ public:
 
     ///////////////////////////////////////////////////////
 
-    virtual const char* GetName() const override { return "SpriteComponent"; }
+    virtual const char* GetName() const override 
+    { 
+        return "SpriteComponent"; 
+    }
 
 
 public:
@@ -74,9 +162,19 @@ public:
 
 private:
     TransformComponent* m_pTransform = nullptr;
-    SDL_Texture* m_pTexture = nullptr;
-    SDL_Rect m_SrcRect;
-    SDL_Rect m_DstRect;
+    SDL_Texture*        m_pTexture = nullptr;
+    SDL_Rect            m_SrcRect;
+    SDL_Rect            m_DstRect;
+
+    int  m_NumFrames = 0;
+    int  m_AnimationSpeed = 0;
+    uint m_AnimationIdx = 0;
+    
+    bool m_IsAnimated = false;     
+    bool m_IsFixed = false;     // is always fixed at the same screen position
+
+    std::map<std::string, Animation> m_Animations;  // key => animation_info
+    std::string m_CurrAnimationName;
 };
 
 #endif

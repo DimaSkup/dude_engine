@@ -6,7 +6,7 @@
 #include "AssetMgr.h"
 #include "TextureMgr.h"
 #include "Log.h"
-
+#include "StrHelper.h"
 
 // init global instance of the AssetMgr
 AssetMgr g_AssetMgr;
@@ -38,10 +38,10 @@ void AssetMgr::AddTexture(const char* textureID, const char* filePath)
 {
     // load a texture by filePath and set ID to textureID
 
-    if (!textureID || textureID[0] == '\0')
+    if (IsStrEmpty(textureID))
         LogErr(LOG_INFO, "input texture ID is empty");
 
-    if (!filePath || filePath[0] == '\0')
+    if (IsStrEmpty(filePath))
         LogErr(LOG_INFO, "input path to texture is empty");
 
     // try to load texture file
@@ -59,10 +59,15 @@ void AssetMgr::AddTexture(const char* textureID, const char* filePath)
 
 SDL_Texture* AssetMgr::GetTexture(const char* textureID)
 {
-    if (!textureID || textureID[0] == '\0')
+    if (IsStrEmpty(textureID))
+    {
         LogErr(LOG_INFO, "input texture ID is empty");
+        return nullptr;
+    }
 
-    return m_Textures[textureID];
+    const bool hasTexture = (m_Textures.find(textureID) != m_Textures.end());
+
+    return (hasTexture) ? m_Textures[textureID] : nullptr;
 }
 
 
