@@ -10,10 +10,16 @@
 #include "AssetMgr.h"
 #include "Components/TransformComponent.h"
 #include "Components/SpriteComponent.h"
+#include "Components/KeyboardControlComponent.h"
+
+
+// init Game's static members 
+SDL_Event Game::ms_Event;
+
 
 ///////////////////////////////////////////////////////////
 
-Game::Game() : isRunning_(false)
+Game::Game() : m_IsRunning(false)
 {
 }
 
@@ -27,7 +33,7 @@ void Game::Initialize()
 {
     LoadLevel(0);
 
-    isRunning_ = true; 
+    m_IsRunning = true; 
 
     LogMsg(LOG_INFO, "The game is initialized!");
 }
@@ -36,20 +42,19 @@ void Game::Initialize()
 
 void Game::ProcessInput()
 {
-    SDL_Event event;
-    SDL_PollEvent(&event);
+    SDL_PollEvent(&ms_Event);
 
-    switch (event.type)
+    switch (ms_Event.type)
     {
         case SDL_QUIT:
         {
-            isRunning_ = false;
+            m_IsRunning = false;
             break;
         }
         case SDL_KEYDOWN:
         {
-            if (event.key.keysym.sym == SDLK_ESCAPE)
-                isRunning_ = false;
+            if (ms_Event.key.keysym.sym == SDLK_ESCAPE)
+                m_IsRunning = false;
             break;
         }
         default:
@@ -64,17 +69,17 @@ void Game::ProcessInput()
 void Game::Update()
 {
     // speep the execution until we reach the target frame time in ms
-    const int timeToWait = FRAME_TARGET_TIME - ((SDL_GetTicks() - ticksLastFrame_));
+    const int timeToWait = FRAME_TARGET_TIME - ((SDL_GetTicks() - m_TicksLastFrame));
 
     // only call delay if we are too fast to process this frame
     if (timeToWait > 0 && timeToWait <= FRAME_TARGET_TIME)
         SDL_Delay(timeToWait);
 
     // difference in ticks from last frame converted to seconds
-    float deltaTime = (SDL_GetTicks() - ticksLastFrame_) * 0.001f; 
+    float deltaTime = (SDL_GetTicks() - m_TicksLastFrame) * 0.001f; 
 
     // set the new ticks count for the current frame to be used in the next pass
-    ticksLastFrame_ = SDL_GetTicks();
+    m_TicksLastFrame = SDL_GetTicks();
  
     // clamp deltaTime to a maximum value
     deltaTime = (deltaTime > FRAME_TARGET_TIME) ? FRAME_TARGET_TIME : deltaTime;
@@ -115,8 +120,9 @@ void Game::LoadLevel(const int levelNumber)
     enttTank.AddComponent<SpriteComponent>("tank-image");
 
     Entity& enttChopper = g_EntityMgr.AddEntity("chopper");
-    enttChopper.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 1);
+    enttChopper.AddComponent<TransformComponent>(240, 106, 20, 20, 32, 32, 1);
     enttChopper.AddComponent<SpriteComponent>("chopper-image", 2, 90, true, false);
+    enttChopper.AddComponent<KeyboardControlComponent>("up", "right", "down", "left", "space");
 
     Entity& enttRadar = g_EntityMgr.AddEntity("radar");
     enttRadar.AddComponent<TransformComponent>(720, 15, 0, 0, 64, 64, 1);

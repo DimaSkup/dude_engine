@@ -24,11 +24,15 @@ public:
     void Destroy();
     void LoadLevel(const int levelNumber);
 
-    inline bool IsRunning() const { return isRunning_; }
+    inline bool IsRunning() const { return m_IsRunning; }
+
+
+public:
+    static SDL_Event ms_Event;
 
 private:
-    bool isRunning_ = true;
-    int  ticksLastFrame_ = 0;
+    bool             m_IsRunning = true;
+    int              m_TicksLastFrame = 0;
 };
 
 #endif
