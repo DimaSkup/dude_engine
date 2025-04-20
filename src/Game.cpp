@@ -120,7 +120,7 @@ void Game::LoadLevel(const int levelNumber)
     g_AssetMgr.AddTexture("jungle-tiletexture", "assets/tilemaps/jungle.png");
 
     // load tilemap and create tile entities
-    constexpr int tileScale = 4;
+    constexpr int tileScale = 2;
     constexpr int tileSize = 32;
     s_pMap = new Map("jungle-tiletexture", tileScale, tileSize);
 
@@ -135,7 +135,7 @@ void Game::LoadLevel(const int levelNumber)
     enttTank.AddComponent<SpriteComponent>("tank-image");
 
     Entity& enttChopper = g_EntityMgr.AddEntity("chopper");
-    enttChopper.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 2);
+    enttChopper.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 1);
     enttChopper.AddComponent<SpriteComponent>("chopper-image", 2, 90, true, false);
     enttChopper.AddComponent<KeyboardControlComponent>("up", "right", "down", "left", "space");
 
