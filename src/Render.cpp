@@ -12,6 +12,10 @@
 SDL_Window*   g_pWindow   = nullptr;
 SDL_Renderer* g_pRenderer = nullptr;
 
+// init some static members
+int Render::ms_WndWidth = 800;
+int Render::ms_WndHeight = 600;
+
 
 ///////////////////////////////////////////////////////////
 
@@ -45,6 +49,9 @@ bool Render::Initialize(const int wndWidth, const int wndHeight)
         LogErr(LOG_INFO, "Error initializing renderer");
         return false;
     }
+
+    ms_WndWidth = wndWidth;
+    ms_WndHeight = wndHeight;
 
     LogMsg("Render is initialized!");
     return true;

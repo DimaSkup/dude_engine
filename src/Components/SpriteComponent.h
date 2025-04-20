@@ -146,6 +146,7 @@ public:
 
     virtual void Render() override
     {
+
         Render::DrawRectTextured(m_pTexture, m_SrcRect, m_DstRect, m_SpriteFlip);
     }
 
@@ -155,6 +156,7 @@ public:
     { 
         return "SpriteComponent"; 
     }
+
 
 
 public:

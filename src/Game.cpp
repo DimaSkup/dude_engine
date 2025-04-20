@@ -8,13 +8,15 @@
 #include "Log.h"
 #include "EntityMgr.h"
 #include "AssetMgr.h"
+#include "Map.h"
 #include "Components/TransformComponent.h"
 #include "Components/SpriteComponent.h"
 #include "Components/KeyboardControlComponent.h"
 
-
 // init Game's static members 
 SDL_Event Game::ms_Event;
+
+Map* s_pMap = nullptr;
 
 
 ///////////////////////////////////////////////////////////
@@ -25,6 +27,8 @@ Game::Game() : m_IsRunning(false)
 
 Game::~Game()
 {
+    if (s_pMap)
+        delete s_pMap;
 }
 
 ///////////////////////////////////////////////////////////
@@ -110,9 +114,20 @@ void Game::Destroy()
 void Game::LoadLevel(const int levelNumber)
 {
     // start loading new assets into the Asset Manager list
-    g_AssetMgr.AddTexture("tank-image", "assets/images/tank-big-right.png");
-    g_AssetMgr.AddTexture("chopper-image", "assets/images/chopper-spritesheet.png");
-    g_AssetMgr.AddTexture("radar-image", "assets/images/radar.png");
+    g_AssetMgr.AddTexture("tank-image",         "assets/images/tank-big-right.png");
+    g_AssetMgr.AddTexture("chopper-image",      "assets/images/chopper-spritesheet.png");
+    g_AssetMgr.AddTexture("radar-image",        "assets/images/radar.png");
+    g_AssetMgr.AddTexture("jungle-tiletexture", "assets/tilemaps/jungle.png");
+
+    // load tilemap and create tile entities
+    constexpr int tileScale = 4;
+    constexpr int tileSize = 32;
+    s_pMap = new Map("jungle-tiletexture", tileScale, tileSize);
+
+    constexpr int tileMapWidth = 25;
+    constexpr int tileMapHeight = 20;
+    s_pMap->LoadMap("assets/tilemaps/jungle.map", tileMapWidth, tileMapHeight);
+
 
     // add entities and add components to the entities
     Entity& enttTank = g_EntityMgr.AddEntity("tank");
@@ -120,12 +135,14 @@ void Game::LoadLevel(const int levelNumber)
     enttTank.AddComponent<SpriteComponent>("tank-image");
 
     Entity& enttChopper = g_EntityMgr.AddEntity("chopper");
-    enttChopper.AddComponent<TransformComponent>(240, 106, 20, 20, 32, 32, 1);
+    enttChopper.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 2);
     enttChopper.AddComponent<SpriteComponent>("chopper-image", 2, 90, true, false);
     enttChopper.AddComponent<KeyboardControlComponent>("up", "right", "down", "left", "space");
 
     Entity& enttRadar = g_EntityMgr.AddEntity("radar");
-    enttRadar.AddComponent<TransformComponent>(720, 15, 0, 0, 64, 64, 1);
+    const int radarOffset = 15;
+    const int radarPosX = Render::GetWndWidth() - 64 - radarOffset;
+    enttRadar.AddComponent<TransformComponent>(radarPosX, 15, 0, 0, 64, 64, 1);
     enttRadar.AddComponent<SpriteComponent>("radar-image", 8, 150, false, true);
 }
 

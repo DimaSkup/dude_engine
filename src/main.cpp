@@ -3,7 +3,6 @@
 #include "Game.h"
 #include "Render.h"
 #include "EntityMgr.h"
-#include <iostream>
 
 int main(int argc, char* args[])
 {
@@ -27,7 +26,6 @@ int main(int argc, char* args[])
         render.End();
     }
 
-    g_EntityMgr.ListAllEntities();
 
     game.Destroy();
     render.Shutdown();

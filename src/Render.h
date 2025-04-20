@@ -32,8 +32,15 @@ public:
         const SDL_Rect& dstRect,
         const SDL_RendererFlip& flip);
 
-    void Begin();
-    void End();
+    void Begin();   // clear the screen before the next frame
+    void End();     // present all the rendered stuff onto the screen
+
+    inline static int GetWndWidth()  { return ms_WndWidth; }
+    inline static int GetWndHeight() { return ms_WndHeight; }
+
+private:
+    static int ms_WndWidth;
+    static int ms_WndHeight;
 };    
 
 // ==================================================================

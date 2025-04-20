@@ -8,6 +8,7 @@
 #define KEYBOARD_CONTROL_COMPONENT_H
 
 #include "../StrHelper.h"
+#include "../Render.h"
 #include "../IComponent.h"
 #include "TransformComponent.h"
 #include "SpriteComponent.h"
@@ -41,9 +42,11 @@ public:
             m_ShootKey = SDL_GetKeyFromName(shootKey);
     }
 
+    virtual ~KeyboardControlComponent() {};
+
     ///////////////////////////////////////////////////////
     
-    void Initialize() override
+    virtual void Initialize() override
     {
         m_pTransform = m_pOwner->GetComponent<TransformComponent>();
         m_pSprite = m_pOwner->GetComponent<SpriteComponent>();
@@ -51,39 +54,91 @@ public:
     
     ///////////////////////////////////////////////////////
     
-    void Update(const float deltaTime) override
+    bool HandleKeysPressing()
     {
-        // update the sprite velocity and animation 
-        // based on the keyboard input
-
+        // return: a flag to define if we pressed any key for moving
+        
         const uint8_t* keys = SDL_GetKeyboardState(NULL);
+        constexpr float speed = 100;
+        bool isMoving = false;
+
+        glm::vec2 velocity = { 0, 0 };
 
         if (keys[SDL_SCANCODE_UP])
         {
-            m_pTransform->m_Velocity.x = 0;
-            m_pTransform->m_Velocity.y = -50;
+            velocity.y = -1;
             m_pSprite->Play("UpAnimation");
+            isMoving = true;
         }
         if (keys[SDL_SCANCODE_DOWN])
         {
-            m_pTransform->m_Velocity.x = 0;
-            m_pTransform->m_Velocity.y = 50;
+            velocity.y = 1;
             m_pSprite->Play("DownAnimation");
-        }
-        
+            isMoving = true;
+        } 
         if (keys[SDL_SCANCODE_RIGHT])
         {
-            m_pTransform->m_Velocity.x = 50;
-            m_pTransform->m_Velocity.y = 0;
+            velocity.x = 1;
             m_pSprite->Play("RightAnimation");
+            isMoving = true;
         }
         if (keys[SDL_SCANCODE_LEFT])
         {
-            m_pTransform->m_Velocity.x = -50;
-            m_pTransform->m_Velocity.y = 0;
+            velocity.x = -1;
             m_pSprite->Play("LeftAnimation");
+            isMoving = true;
         }
 
+        // normalize the direction to prevent moving faster by diagonal
+        if (isMoving)
+        {
+            m_pTransform->m_Velocity = glm::normalize(velocity) * speed;
+        }
+
+        return isMoving;
+    }
+
+    ///////////////////////////////////////////////////////
+
+    void ClampPosition(const float deltaTime)
+    {
+        // if we are moving we need to clamp the position of the 
+        // main player to the visible width & height of the window
+
+        const glm::vec2 playerPos  = m_pTransform->GetPosition();
+        const glm::vec2 playerVel  = m_pTransform->GetVelocity();
+        const int halfPlayerW      = m_pTransform->GetWidth() >> 1;
+        const int halfPlayerH      = m_pTransform->GetHeight() >> 1;
+
+        // compute the player's next position
+        const float nextPosX = playerPos.x + (playerVel.x * deltaTime);
+        const float nextPosY = playerPos.y + (playerVel.y * deltaTime);
+
+        // check if we touch the window left/right edge
+        if ((nextPosX - halfPlayerW) <= 0)
+        {
+            m_pTransform->m_Velocity.x = 0;
+        }
+        else if ((nextPosX + halfPlayerW) >= Render::GetWndWidth())
+        { 
+            m_pTransform->m_Velocity.x = 0;
+        }
+
+        // check if we touch the window top/bottom edge
+        if ((nextPosY - halfPlayerH) <= 0)
+        {
+            m_pTransform->m_Velocity.y = 0;
+        }
+        else if ((nextPosY + halfPlayerH) >= Render::GetWndHeight())
+        {
+            m_pTransform->m_Velocity.y = 0;
+        }
+    }
+
+    ///////////////////////////////////////////////////////
+
+    void HandleKeysReleasing()
+    {
         // if we released some key we set velocity to 0
         if(Game::ms_Event.type == SDL_KEYUP)
         {
@@ -98,9 +153,23 @@ public:
                     m_pTransform->m_Velocity.y = 0;
                     break;
                 }
-
             }
         }
+    }
+
+    ///////////////////////////////////////////////////////
+
+    void Update(const float deltaTime) override
+    {
+        // update the sprite velocity and animation 
+        // based on the keyboard input
+
+        bool isMoving = HandleKeysPressing();
+
+        if (isMoving)
+            ClampPosition(deltaTime);
+
+        HandleKeysReleasing();
     }
     
     ///////////////////////////////////////////////////////

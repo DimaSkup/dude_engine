@@ -68,6 +68,8 @@ const std::vector<Entity*>& EntityMgr::GetEntities() const
 
 void EntityMgr::ListAllEntities() const
 {
+    // for debug: print the list of all entities and its components
+
     printf("\n\n");
     LogDbg(LOG_INFO, "components dump");
 

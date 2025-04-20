@@ -52,8 +52,17 @@ public:
 
     ///////////////////////////////////////////////////////////
 
-
     virtual const char* GetName() const override { return "TransformComponent"; }
+
+    ///////////////////////////////////////////////////////////
+
+    inline glm::vec2 GetPosition() const { return m_Position; }
+    inline glm::vec2 GetVelocity() const { return m_Velocity; }
+
+    inline int GetOrigWidth()      const { return m_Width; }
+    inline int GetOrigHeight()     const { return m_Height; }
+    inline int GetWidth()          const { return m_Width * m_Scale; }
+    inline int GetHeight()         const { return m_Height * m_Scale; }    
 
 public:
     glm::vec2 m_Position;
