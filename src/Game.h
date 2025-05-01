@@ -1,6 +1,8 @@
 // ==================================================================
 // Filename:    Game.h
-// Description: 
+// Description: main class for the game 
+//              init/process input/update/render/etc. 
+//
 // Created:     07.04.2025 by DimaSkup
 // ==================================================================
 #ifndef GAME_H
