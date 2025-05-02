@@ -96,7 +96,7 @@ void Game::Update()
 
 void Game::Render()
 {
-    if (g_EntityMgr.HasNoEntities())
+    if (g_EntityMgr.HasNoEntts())
         return;
     
     // call the EntityMgr::Render() to render all the entities
@@ -130,19 +130,22 @@ void Game::LoadLevel(const int levelNumber)
 
 
     // add entities and add components to the entities
-    Entity& enttTank = g_EntityMgr.AddEntity("tank");
+    Entity& enttTank = g_EntityMgr.AddEntity("tank", LAYER_ENEMY);
     enttTank.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
     enttTank.AddComponent<SpriteComponent>("tank-image");
 
-    Entity& enttChopper = g_EntityMgr.AddEntity("chopper");
+    Entity& enttChopper = g_EntityMgr.AddEntity("chopper", LAYER_PLAYER);
     enttChopper.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 1);
     enttChopper.AddComponent<SpriteComponent>("chopper-image", 2, 90, true, false);
     enttChopper.AddComponent<KeyboardControlComponent>("up", "right", "down", "left", "space");
 
-    Entity& enttRadar = g_EntityMgr.AddEntity("radar");
+    Entity& enttRadar = g_EntityMgr.AddEntity("radar", LAYER_UI);
     const int radarOffset = 15;
     const int radarPosX = Render::GetWndWidth() - 64 - radarOffset;
     enttRadar.AddComponent<TransformComponent>(radarPosX, 15, 0, 0, 64, 64, 1);
     enttRadar.AddComponent<SpriteComponent>("radar-image", 8, 150, false, true);
+
+    sprintf(g_String, "level %d is loaded", levelNumber);
+    LogMsg(g_String);
 }
 

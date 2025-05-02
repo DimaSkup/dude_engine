@@ -1,10 +1,18 @@
+// ==================================================================
+// Filename:     Entity.h
+// Description:  entity of the Entity-Component;
+//               each entity:
+//               - contains a set of its components
+//               - has a name
+//               - has an activity flag
+// ==================================================================
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include "Constants.h"
 #include "EntityMgr.h"
 #include "IComponent.h"
 #include <vector>
-#include <string>
 #include <map>
 #include <typeinfo>
 
@@ -15,7 +23,7 @@ class Entity
 {
 public:
     Entity(EntityMgr& mgr);
-    Entity(EntityMgr& mgr, const std::string& name);
+    Entity(EntityMgr& mgr, const char* name, const eLayerType layer);
 
     void Update(const float deltaTime);
     void Render();
@@ -58,7 +66,8 @@ public:
     void ListAllComponents() const;
 
 public:
-    std::string              m_Name;
+    eLayerType               m_Layer;
+    char                     m_Name[32]{'\0'};
     bool                     m_IsActive = false;
     std::vector<IComponent*> m_Components;
     std::map<const std::type_info*, IComponent*> m_ComponentTypeMap; // pairs [component_type => component_ptr]

@@ -7,6 +7,8 @@
 # -lSDL2_image                  -- use ext lib to work with images
 # -lSDL2_ttf                    -- use ext lib to work with fonts
 # -lSDL2_mixer                  -- use ext lib to work with sounds
+#
+#  add -g flag after -std=c++14 to compile for debugging
 build:
 	g++ -w -std=c++14 -Wfatal-errors \
 	./src/*.cpp \

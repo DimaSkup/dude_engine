@@ -9,10 +9,8 @@
 #include "Types.h"
 #include "Entity.h"
 #include "IComponent.h"
-//#include "Components/TransformComponent.h"
-#include <string>
 #include <vector>
-
+#include <map>
 
 class EntityMgr
 {
@@ -23,16 +21,19 @@ public:
     void Update(const float deltaTime);
     void Render();
 
-    inline bool HasNoEntities()  const { return entities_.size() == 0; }
-    inline uint GetEntityCount() const { return entities_.size(); }
+    inline bool HasNoEntts()  const { return entities_.size() == 0; }
+    inline uint GetNumEntts() const { return entities_.size(); }
 
-    Entity& AddEntity(const std::string& enttName);
-    const std::vector<Entity*>& GetEntities() const;
+    Entity& AddEntity(const char* enttName, const eLayerType layer);
 
-    void ListAllEntities() const;
+    const std::vector<Entity*>& GetEntts() const;
+    const std::vector<Entity*>* GetEnttsByLayer(const eLayerType layer) const;
+
+    void ListAllEntts() const;
 
 private:
-    std::vector<Entity*> entities_;
+    std::vector<Entity*>                      entities_;
+    std::map<eLayerType, std::vector<Entity*>> enttsByLayers_;
 };
 
 // =================================================================================

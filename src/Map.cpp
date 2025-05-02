@@ -90,7 +90,7 @@ void Map::AddTile(
     const int y)           // Y-position of tile on the screen
 {
     // add a new tile entity in the game scene
-    Entity& newTile = g_EntityMgr.AddEntity("Tile");
+    Entity& newTile = g_EntityMgr.AddEntity("Tile", LAYER_TILEMAP);
     newTile.AddComponent<TileComponent>(
         srcRectX, srcRectY, 
         x, y, 
