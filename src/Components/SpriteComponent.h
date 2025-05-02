@@ -7,6 +7,7 @@
 #ifndef SPRITE_COMPONENT_H
 #define SPRITE_COMPONENT_H
 
+#include "../GameState.h"
 #include "../Types.h"
 #include "../StrHelper.h"
 #include "../Log.h"
@@ -136,8 +137,9 @@ public:
         m_SrcRect.y = m_AnimationIdx * m_pTransform->m_Height;
 
         // update the position onto the screen
-        m_DstRect.x = (int)m_pTransform->m_Position.x;
-        m_DstRect.y = (int)m_pTransform->m_Position.y;
+        m_DstRect.x = (int)(m_pTransform->m_Position.x - g_GameStates.cameraPosX * !m_IsFixed);
+        m_DstRect.y = (int)(m_pTransform->m_Position.y - g_GameStates.cameraPosY * !m_IsFixed);
+
         m_DstRect.w = m_pTransform->m_Width  * m_pTransform->m_Scale;
         m_DstRect.h = m_pTransform->m_Height * m_pTransform->m_Scale;
     }

@@ -21,17 +21,20 @@ public:
     
     void Initialize();
     void ProcessInput();
+
     void Update();
     void Render();
     void Destroy();
+
     void LoadLevel(const int levelNumber);
+    void HandleCameraMovement();
 
     inline bool IsRunning() const { return m_IsRunning; }
 
 
 public:
     static SDL_Event ms_Event;
-
+    static SDL_Rect  ms_Camera;
 private:
     bool             m_IsRunning = true;
     int              m_TicksLastFrame = 0;

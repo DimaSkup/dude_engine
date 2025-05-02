@@ -12,13 +12,17 @@
 #include "Components/TransformComponent.h"
 #include "Components/SpriteComponent.h"
 #include "Components/KeyboardControlComponent.h"
+#include "GameState.h"
+
 
 // init Game's static members 
 SDL_Event Game::ms_Event;
+SDL_Rect  Game::ms_Camera = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
 Map* s_pMap = nullptr;
 
-
+// init some globals
+GameStates g_GameStates;
 ///////////////////////////////////////////////////////////
 
 Game::Game() : m_IsRunning(false)
@@ -37,7 +41,17 @@ void Game::Initialize()
 {
     LoadLevel(0);
 
-    m_IsRunning = true; 
+    m_IsRunning = true;
+
+    // setup the game state
+    g_GameStates.SetWndDimensions(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    // setup the camera
+    ms_Camera = {0, 0, g_GameStates.windowWidth, g_GameStates.windowHeight };
+
+    // compute the camera's limits
+    g_GameStates.cameraMaxX = g_GameStates.levelMapWidth  - ms_Camera.w;
+    g_GameStates.cameraMaxY = g_GameStates.levelMapHeight - ms_Camera.h;
 
     LogMsg(LOG_INFO, "The game is initialized!");
 }
@@ -90,6 +104,60 @@ void Game::Update()
 
     // call the EntityMgr::Update() to update all the entities
     g_EntityMgr.Update(deltaTime);
+
+    HandleCameraMovement();
+}
+
+///////////////////////////////////////////////////////////
+
+void Game::HandleCameraMovement()
+{
+    Entity* pPlayer = g_EntityMgr.GetPlayer();
+    TransformComponent* pPlayerTransform = pPlayer->GetComponent<TransformComponent>();
+
+    ms_Camera.x = pPlayerTransform->m_Position.x - HALF_WND_WIDTH;
+    ms_Camera.y = pPlayerTransform->m_Position.y - HALF_WND_HEIGHT;
+
+#if 0
+
+    // clamp the camera's position
+    ms_Camera.x = (ms_Camera.x < 0) ? 0 : ms_Camera.x;
+    ms_Camera.y = (ms_Camera.y < 0) ? 0 : ms_Camera.y;
+
+    const uint cameraRight  = ms_Camera.x + ms_Camera.w;
+    const uint cameraBottom = ms_Camera.y + ms_Camera.h;
+
+    // limit maximal values for top left corner of the camera rectangle
+    ms_Camera.x = (cameraRight  >= g_GameStates.levelMapWidth)  ? g_GameStates.cameraMaxX : ms_Camera.x;
+    ms_Camera.y = (cameraBottom >= g_GameStates.levelMapHeight) ? g_GameStates.cameraMaxY : ms_Camera.y;
+
+#else
+    const uint cameraRight  = ms_Camera.x + ms_Camera.w;
+    const uint cameraBottom = ms_Camera.y + ms_Camera.h;
+
+    // clamp the camera's position by X
+    if (ms_Camera.x < 0)
+    {
+        ms_Camera.x = 0;
+    }
+    else if (cameraRight > g_GameStates.levelMapWidth)
+    {
+        ms_Camera.x = g_GameStates.cameraMaxX;
+    }
+
+    // clamp the camera's position by Y
+    if (ms_Camera.y < 0)
+    {
+        ms_Camera.y = 0;
+    }
+    else if (cameraBottom > g_GameStates.levelMapHeight)
+    {
+        ms_Camera.y = g_GameStates.cameraMaxY;
+    }
+#endif
+
+    g_GameStates.cameraPosX = ms_Camera.x;
+    g_GameStates.cameraPosY = ms_Camera.y;
 }
 
 ///////////////////////////////////////////////////////////
@@ -120,7 +188,7 @@ void Game::LoadLevel(const int levelNumber)
     g_AssetMgr.AddTexture("jungle-tiletexture", "assets/tilemaps/jungle.png");
 
     // load tilemap and create tile entities
-    constexpr int tileScale = 2;
+    constexpr int tileScale = 4;
     constexpr int tileSize = 32;
     s_pMap = new Map("jungle-tiletexture", tileScale, tileSize);
 
@@ -128,6 +196,11 @@ void Game::LoadLevel(const int levelNumber)
     constexpr int tileMapHeight = 20;
     s_pMap->LoadMap("assets/tilemaps/jungle.map", tileMapWidth, tileMapHeight);
 
+    // compute full width and height of the level in pixels
+    g_GameStates.levelMapWidth = tileScale * tileSize * tileMapWidth;
+    g_GameStates.levelMapHeight = tileScale * tileSize * tileMapHeight;
+
+    LogMsg("map size: %d %d", g_GameStates.levelMapWidth, g_GameStates.levelMapHeight);
 
     // add entities and add components to the entities
     Entity& enttTank = g_EntityMgr.AddEntity("tank", LAYER_ENEMY);
@@ -138,6 +211,7 @@ void Game::LoadLevel(const int levelNumber)
     enttChopper.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 1);
     enttChopper.AddComponent<SpriteComponent>("chopper-image", 2, 90, true, false);
     enttChopper.AddComponent<KeyboardControlComponent>("up", "right", "down", "left", "space");
+    g_EntityMgr.SetPlayer(&enttChopper);
 
     Entity& enttRadar = g_EntityMgr.AddEntity("radar", LAYER_UI);
     const int radarOffset = 15;

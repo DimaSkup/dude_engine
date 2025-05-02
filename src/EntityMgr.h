@@ -21,8 +21,8 @@ public:
     void Update(const float deltaTime);
     void Render();
 
-    inline bool HasNoEntts()  const { return entities_.size() == 0; }
-    inline uint GetNumEntts() const { return entities_.size(); }
+    inline bool HasNoEntts()  const { return m_Entities.empty(); }
+    inline uint GetNumEntts() const { return m_Entities.size(); }
 
     Entity& AddEntity(const char* enttName, const eLayerType layer);
 
@@ -31,9 +31,14 @@ public:
 
     void ListAllEntts() const;
 
+    void           SetPlayer(Entity* pEntt);
+    inline Entity* GetPlayer() const { return m_pPlayer; }
+
 private:
-    std::vector<Entity*>                      entities_;
-    std::map<eLayerType, std::vector<Entity*>> enttsByLayers_;
+    Entity*              m_pPlayer = nullptr;
+    std::vector<Entity*> m_Entities;
+
+    std::map<eLayerType, std::vector<Entity*>> m_EnttsByLayers;
 };
 
 // =================================================================================

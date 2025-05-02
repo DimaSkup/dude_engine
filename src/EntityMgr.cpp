@@ -21,20 +21,20 @@ EntityMgr::EntityMgr()
 
 void EntityMgr::ClearData()
 {
-    for (Entity* pEntt : entities_)
+    for (Entity* pEntt : m_Entities)
     {
         pEntt->Destroy();
         delete pEntt;
     }
 
-    entities_.clear();
+    m_Entities.clear();
 }
 
 ///////////////////////////////////////////////////////////
 
 void EntityMgr::Update(const float deltaTime)
 {
-    for (Entity* pEntt : entities_)
+    for (Entity* pEntt : m_Entities)
     {
         pEntt->Update(deltaTime);
     }
@@ -62,8 +62,8 @@ Entity& EntityMgr::AddEntity(const char* enttName, const eLayerType layer)
 {
     Entity* pEntt = new Entity(*this, enttName, layer);
 
-    entities_.emplace_back(pEntt);                // add this entt into the main array of entities
-    enttsByLayers_[layer].emplace_back(pEntt);    // add this entt into the map of entities by layers (so we relate this entity to particular layer)
+    m_Entities.emplace_back(pEntt);                // add this entt into the main array of entities
+    m_EnttsByLayers[layer].emplace_back(pEntt);    // add this entt into the map of entities by layers (so we relate this entity to particular layer)
 
     return *pEntt;
 }
@@ -72,7 +72,7 @@ Entity& EntityMgr::AddEntity(const char* enttName, const eLayerType layer)
 
 const std::vector<Entity*>& EntityMgr::GetEntts() const
 {
-    return entities_;
+    return m_Entities;
 }
 
 ///////////////////////////////////////////////////////////
@@ -80,8 +80,8 @@ const std::vector<Entity*>& EntityMgr::GetEntts() const
 const std::vector<Entity*>* EntityMgr::GetEnttsByLayer(
     const eLayerType layer) const
 {
-    if (enttsByLayers_.find(layer) != enttsByLayers_.end())
-        return &enttsByLayers_.at(layer);
+    if (m_EnttsByLayers.find(layer) != m_EnttsByLayers.end())
+        return &m_EnttsByLayers.at(layer);
     else
         return nullptr;
 }
@@ -95,7 +95,7 @@ void EntityMgr::ListAllEntts() const
     printf("\n\n");
     LogDbg(LOG_INFO, "components dump");
 
-    for (int i = 0; const Entity* pEntt : entities_)
+    for (int i = 0; const Entity* pEntt : m_Entities)
     {
         printf("Entity[%d]: EntityName: %s\n", i, pEntt->m_Name);
         pEntt->ListAllComponents();
@@ -103,3 +103,18 @@ void EntityMgr::ListAllEntts() const
     }
 }
 
+///////////////////////////////////////////////////////////
+
+void EntityMgr::SetPlayer(Entity* pEntt)
+{
+    // set entity as a player
+
+    if (pEntt)
+    {
+        m_pPlayer = pEntt;
+    }
+    else
+    {
+        LogErr("can't set a player: input ptr == nullptr");
+    }
+}

@@ -1,6 +1,7 @@
 #ifndef TILE_COMPONENT_H
 #define TILE_COMPONENT_H
 
+#include "../GameState.h"
 #include "../IComponent.h"
 #include "../Render.h"
 #include "../AssetMgr.h"
@@ -40,7 +41,12 @@ public:
 
     ///////////////////////////////////////////////////////
     
-    virtual void Update(const float deltaTime) override {}
+    virtual void Update(const float deltaTime) override 
+    {
+        // update the tile's position according to the camera position
+        m_DstRect.x = m_Position.x - g_GameStates.cameraPosX;
+        m_DstRect.y = m_Position.y - g_GameStates.cameraPosY;
+    }
 
     ///////////////////////////////////////////////////////
 
@@ -51,7 +57,10 @@ public:
 
     ///////////////////////////////////////////////////////
 
-    virtual const char* GetName() const override { return "TileComponent"; }
+    virtual const char* GetName() const override 
+    { 
+        return "TileComponent"; 
+    }
 
 
 public:

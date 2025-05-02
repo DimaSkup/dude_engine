@@ -7,6 +7,7 @@
 #ifndef KEYBOARD_CONTROL_COMPONENT_H
 #define KEYBOARD_CONTROL_COMPONENT_H
 
+#include "../GameState.h"
 #include "../StrHelper.h"
 #include "../Render.h"
 #include "../IComponent.h"
@@ -59,7 +60,7 @@ public:
         // return: a flag to define if we pressed any key for moving
         
         const uint8_t* keys = SDL_GetKeyboardState(NULL);
-        constexpr float speed = 100;
+        constexpr float speed = 400;
         bool isMoving = false;
 
         glm::vec2 velocity = { 0, 0 };
@@ -119,7 +120,7 @@ public:
         {
             m_pTransform->m_Velocity.x = 0;
         }
-        else if ((nextPosX + halfPlayerW) >= Render::GetWndWidth())
+        else if ((nextPosX + halfPlayerW) >= g_GameStates.levelMapWidth)
         { 
             m_pTransform->m_Velocity.x = 0;
         }
@@ -129,7 +130,7 @@ public:
         {
             m_pTransform->m_Velocity.y = 0;
         }
-        else if ((nextPosY + halfPlayerH) >= Render::GetWndHeight())
+        else if ((nextPosY + halfPlayerH) >= g_GameStates.levelMapHeight)
         {
             m_pTransform->m_Velocity.y = 0;
         }
