@@ -24,6 +24,7 @@ public:
 
     void AddTexture(const char* textureID, const char* filePath);
     SDL_Texture* GetTexture(const char* textureID);
+    SDL_Point    GetTextureSize(SDL_Texture* pTexture);
 
 private:
     EntityMgr*                          m_pEnttMgr = nullptr;

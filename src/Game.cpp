@@ -26,7 +26,7 @@ Map* s_pMap = nullptr;
 GameStates g_GameStates;
 ///////////////////////////////////////////////////////////
 
-Game::Game() : m_IsRunning(false)
+Game::Game() : m_Running(false)
 {
 }
 
@@ -42,7 +42,7 @@ void Game::Initialize()
 {
     LoadLevel(0);
 
-    m_IsRunning = true;
+    m_Running = true;
 
     // setup the game state
     g_GameStates.SetWndDimensions(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -67,13 +67,16 @@ void Game::ProcessInput()
     {
         case SDL_QUIT:
         {
-            m_IsRunning = false;
+            m_Running = false;
             break;
         }
         case SDL_KEYDOWN:
         {
-            if (ms_Event.key.keysym.sym == SDLK_ESCAPE)
-                m_IsRunning = false;
+            const SDL_Keycode key = ms_Event.key.keysym.sym;
+
+            if      (key == SDLK_ESCAPE)  m_Running = false;          // shutdown and exit from the game
+            else if (key == SDLK_F2)      m_ShowAABB = !m_ShowAABB;   // switch on/off the visualization of the AABB
+
             break;
         }
         default:
@@ -156,8 +159,40 @@ void Game::CheckCollisions()
 
     if (collisionTag == COLLIDER_TAG_ENEMY)
     {
-        m_IsRunning = false;
+        m_Running = false;
     }
+}
+
+///////////////////////////////////////////////////////////
+
+void Game::RenderColliderAABB() const
+{
+    // render visualization of colliders AABB for entities which have the Collider component
+
+    std::vector<Entity*> enttsWithCollider;
+    enttsWithCollider.reserve(8);
+
+    // get only entities with collider
+    for (Entity* pEntt : g_EntityMgr.GetEntts())
+    {
+        if (pEntt->HasComponent<Collider>())
+            enttsWithCollider.push_back(pEntt);
+    }
+
+    // because we want to render AABB over the sprite, but not the actual collider position we get sprite's dest rect
+    std::vector<SDL_Rect> dstRects(enttsWithCollider.size());
+
+    for (int i = 0; Entity* pEntt : enttsWithCollider)
+       dstRects[i++] = pEntt->GetComponent<Sprite>()->GetDstRect();
+
+    // src rectangle of the AABB texture
+    SDL_Texture*    pTexAABB = g_AssetMgr.GetTexture("bounding-box");
+    const SDL_Point texSize  = g_AssetMgr.GetTextureSize(pTexAABB);
+    const SDL_Rect  srcRect  = {0, 0, texSize.x, texSize.y};  
+
+    // render AABB for each entt with collider    
+    for (const SDL_Rect& dstRect : dstRects)
+        Render::DrawRectTextured(pTexAABB, srcRect, dstRect, SDL_FLIP_NONE);
 }
 
 ///////////////////////////////////////////////////////////
@@ -169,6 +204,10 @@ void Game::Render()
     
     // call the EntityMgr::Render() to render all the entities
     g_EntityMgr.Render();
+
+    // render visualization of AABB if need (call it after the main rendering process)
+    if (m_ShowAABB)
+        RenderColliderAABB();
 }
 
 ///////////////////////////////////////////////////////////
@@ -184,6 +223,7 @@ void Game::LoadLevel(const int levelNumber)
     // start loading new assets into the Asset Manager list
     g_AssetMgr.AddTexture("tank-image",         "assets/images/tank-big-right.png");
     g_AssetMgr.AddTexture("chopper-image",      "assets/images/chopper-spritesheet.png");
+    g_AssetMgr.AddTexture("bounding-box",       "assets/images/collision-texture.png");
     g_AssetMgr.AddTexture("radar-image",        "assets/images/radar.png");
     g_AssetMgr.AddTexture("jungle-tiletexture", "assets/tilemaps/jungle.png");
 

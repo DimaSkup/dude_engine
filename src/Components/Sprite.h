@@ -117,6 +117,11 @@ public:
         m_pTexture = g_AssetMgr.GetTexture(assetTextureID); 
     }
 
+    ///////////////////////////////////////////////////////
+
+    inline const SDL_Rect& GetSrcRect() const { return m_SrcRect; }
+    inline const SDL_Rect& GetDstRect() const { return m_DstRect; }
+
 
     // ==============================================================
     // Virtual methods
@@ -169,20 +174,21 @@ public:
     SDL_RendererFlip m_SpriteFlip = SDL_FLIP_NONE;
 
 private:
-    Transform* m_pTransform = nullptr;
-    SDL_Texture*        m_pTexture = nullptr;
-    SDL_Rect            m_SrcRect;
-    SDL_Rect            m_DstRect;
+    Transform*      m_pTransform     = nullptr;
+    SDL_Texture*    m_pTexture       = nullptr;
+    SDL_Rect        m_SrcRect;
+    SDL_Rect        m_DstRect;
 
-    int  m_NumFrames = 0;
-    int  m_AnimationSpeed = 0;
-    uint m_AnimationIdx = 0;
+    int             m_NumFrames      = 0;
+    int             m_AnimationSpeed = 0;
+    uint            m_AnimationIdx   = 0;
     
-    bool m_IsAnimated = false;     
-    bool m_IsFixed = false;     // is always fixed at the same screen position
+    bool            m_IsAnimated     = false;     
+    bool            m_IsFixed        = false;   // is always fixed at the same screen position
 
-    std::map<std::string, Animation> m_Animations;  // key => animation_info
-    std::string m_CurrAnimationName;
+    std::string     m_CurrAnimationName;
+
+    std::map<std::string, Animation>    m_Animations;  // key => animation_info
 };
 
 #endif

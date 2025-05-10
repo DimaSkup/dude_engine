@@ -37,17 +37,17 @@ public:
 
     virtual void Initialize() override
     {
-        //if (m_pOwner->HasComponent<Transform>())
-        //{
+        if (m_pOwner->HasComponent<Transform>())
+        {
             m_pTransform = m_pOwner->GetComponent<Transform>();
             m_SrcRect = {0, 0, m_pTransform->m_Width, m_pTransform->m_Height};
             m_DstRect = m_Collider;
-        //}
-        //else
-        //{
-            //sprintf(g_String, "can't init collider because the entity (name: %s) doesn't have the Transform component", m_pOwner->m_Name);
-            //LogErr(LOG_INFO, g_String);
-        //}
+        }
+        else
+        {
+            sprintf(g_String, "can't init collider because the entity (name: %s) doesn't have the Transform component", m_pOwner->m_Name);
+            LogErr(LOG_INFO, g_String);
+        }
     }
 
     ///////////////////////////////////////////////////////

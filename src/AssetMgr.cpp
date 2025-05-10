@@ -55,6 +55,7 @@ void AssetMgr::AddTexture(const char* textureID, const char* filePath)
 
     m_Textures.emplace(textureID, pTex);
 }
+
 ///////////////////////////////////////////////////////////
 
 SDL_Texture* AssetMgr::GetTexture(const char* textureID)
@@ -70,4 +71,18 @@ SDL_Texture* AssetMgr::GetTexture(const char* textureID)
     return (hasTexture) ? m_Textures[textureID] : nullptr;
 }
 
+///////////////////////////////////////////////////////////
+
+SDL_Point AssetMgr::GetTextureSize(SDL_Texture* pTexture)
+{
+    // get texture width and height
+    SDL_Point size{0,0};
+
+    if (!pTexture)
+        LogErr("input ptr to texture == nullptr");
+    else
+        SDL_QueryTexture(pTexture, NULL, NULL, &size.x, &size.y);
+
+    return size;
+}
 
