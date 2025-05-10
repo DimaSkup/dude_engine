@@ -28,6 +28,7 @@ public:
 
     void LoadLevel(const int levelNumber);
     void HandleCameraMovement();
+    void CheckCollisions();
 
     inline bool IsRunning() const { return m_IsRunning; }
 

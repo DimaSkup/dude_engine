@@ -1,5 +1,5 @@
 // ==================================================================
-// Filename:    TransformComponent.h
+// Filename:    Transform.h
 // Description: a component of the EC (Entity-Component) which
 //              contains and handles data of entity: 
 //              1. position 
@@ -9,18 +9,18 @@
 //
 // Created:     15.04.2025 by DimaSkup
 // ==================================================================
-#ifndef TRANSFORM_COMPONENT_H
-#define TRANSFORM_COMPONENT_H
+#ifndef TRANSFORM_H
+#define TRANSFORM_H
 
 #include "../IComponent.h"
 #include "../Render.h"
 #include "../../lib/glm/glm.hpp"
 
 
-class TransformComponent : public IComponent
+class Transform : public IComponent
 {
 public:
-    TransformComponent(
+    Transform(
         const int posX,  
         const int posY, 
         const int velX,  
@@ -35,12 +35,12 @@ public:
         m_Height(height),
         m_Scale(scale) {}
 
-    virtual ~TransformComponent() {}
+    virtual ~Transform() {}
 
     ///////////////////////////////////////////////////////
 
     virtual void Initialize() override {}
-    virtual void Render() override {}
+    virtual void Render()     override {}
 
     ///////////////////////////////////////////////////////////
 
@@ -52,7 +52,7 @@ public:
 
     ///////////////////////////////////////////////////////////
 
-    virtual const char* GetName() const override { return "TransformComponent"; }
+    virtual const char* GetName() const override { return "Transform (Component)"; }
 
     ///////////////////////////////////////////////////////////
 

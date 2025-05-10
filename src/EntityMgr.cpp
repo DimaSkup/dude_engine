@@ -4,6 +4,7 @@
 // ==================================================================
 #include "EntityMgr.h"
 #include "Log.h"
+#include "Components/Collider.h"
 #include <stdio.h>
 
 // init a global instance of the Entity manager
@@ -117,4 +118,33 @@ void EntityMgr::SetPlayer(Entity* pEntt)
     {
         LogErr("can't set a player: input ptr == nullptr");
     }
+}
+
+///////////////////////////////////////////////////////////
+
+eColliderTag EntityMgr::CheckEnttCollisions(Entity* pInEntt) const
+{
+    const Collider* pCollider = pInEntt->GetComponent<Collider>();
+    const SDL_Rect& colliderRect = pCollider->m_Collider;
+
+    for (Entity* pEntity : m_Entities)
+    {
+        // avoid collision test with itself and with tilemaps
+        if (strcmp(pEntity->m_Name, pInEntt->m_Name) == 0 &&
+            strcmp(pEntity->m_Name, "Tile"))
+            continue;
+
+        if (pEntity->HasComponent<Collider>())
+        {
+            const Collider* pOtherCollider = pEntity->GetComponent<Collider>();
+           
+            // if we have collision btw input entt and the current one
+            if (Collision::CheckRectCollision(colliderRect, pOtherCollider->m_Collider))
+            {
+                return pOtherCollider->m_ColliderTag;
+            }
+        }
+    }
+
+    return eColliderTag::COLLIDER_TAG_NONE;
 }

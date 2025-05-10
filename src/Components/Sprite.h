@@ -1,11 +1,12 @@
 // ==================================================================
-// Filename:    SpriteComponent.h
-// Description: component for sprites and sprites animations
+// Filename:    Sprite.h
+// Description: a component of EC (Entity-Component)
+//              for sprites and sprites animations
 //
 // Created:     04.2025 by DimaSkup
 // ==================================================================
-#ifndef SPRITE_COMPONENT_H
-#define SPRITE_COMPONENT_H
+#ifndef SPRITE_H
+#define SPRITE_H
 
 #include "../GameState.h"
 #include "../Types.h"
@@ -15,14 +16,14 @@
 #include "../AssetMgr.h"
 #include "../Render.h"
 #include "../Animation.h"
-#include "TransformComponent.h"
+#include "Transform.h"
 #include <SDL2/SDL.h>
 
-class SpriteComponent : public IComponent 
+class Sprite : public IComponent 
 {
 public:
 
-    SpriteComponent(const char* assetTextureID) :
+    Sprite(const char* assetTextureID) :
         m_IsAnimated(false),
         m_IsFixed(false)
     {
@@ -36,7 +37,7 @@ public:
 
     ///////////////////////////////////////////////////////
     
-    SpriteComponent(
+    Sprite(
         const char* assetTextureID, 
         const uint numFrames,
         const uint animationSpeed,
@@ -86,6 +87,10 @@ public:
         SetTexture(assetTextureID);
         Play(m_CurrAnimationName);
     }
+
+    ///////////////////////////////////////////////////////
+
+    virtual ~Sprite() {}
     
     ///////////////////////////////////////////////////////
 
@@ -118,7 +123,7 @@ public:
     // ==============================================================
     virtual void Initialize() override
     {
-        m_pTransform = m_pOwner->GetComponent<TransformComponent>();
+        m_pTransform = m_pOwner->GetComponent<Transform>();
         m_SrcRect.x = 0;
         m_SrcRect.y = 0;
         m_SrcRect.w = m_pTransform->m_Width;
@@ -148,7 +153,6 @@ public:
 
     virtual void Render() override
     {
-
         Render::DrawRectTextured(m_pTexture, m_SrcRect, m_DstRect, m_SpriteFlip);
     }
 
@@ -156,7 +160,7 @@ public:
 
     virtual const char* GetName() const override 
     { 
-        return "SpriteComponent"; 
+        return "Sprite (Component)"; 
     }
 
 
@@ -165,7 +169,7 @@ public:
     SDL_RendererFlip m_SpriteFlip = SDL_FLIP_NONE;
 
 private:
-    TransformComponent* m_pTransform = nullptr;
+    Transform* m_pTransform = nullptr;
     SDL_Texture*        m_pTexture = nullptr;
     SDL_Rect            m_SrcRect;
     SDL_Rect            m_DstRect;

@@ -26,7 +26,7 @@ public:
     Entity(EntityMgr& mgr, const char* name, const eLayerType layer);
 
     void Update(const float deltaTime);
-    void Render();
+     void Render();
     void Destroy();
 
     inline bool IsActive() const { return m_IsActive; }

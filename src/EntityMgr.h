@@ -8,6 +8,7 @@
 
 #include "Types.h"
 #include "Entity.h"
+#include "Collision.h"           // collision math tests
 #include "IComponent.h"
 #include <vector>
 #include <map>
@@ -33,6 +34,9 @@ public:
 
     void           SetPlayer(Entity* pEntt);
     inline Entity* GetPlayer() const { return m_pPlayer; }
+
+    // collision tests
+    eColliderTag CheckEnttCollisions(Entity* pEntt) const;
 
 private:
     Entity*              m_pPlayer = nullptr;

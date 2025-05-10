@@ -1,26 +1,26 @@
 // ==================================================================
-// Filename:    KeyboardControlComponent.h
-// Description: component to control entity position using keyboard
+// Filename:    KeyboardComponent.h
+// Description: a component to control entity position using keyboard
 //
 // Created:     19.04.2025 by DimaSkup
 // ==================================================================
-#ifndef KEYBOARD_CONTROL_COMPONENT_H
-#define KEYBOARD_CONTROL_COMPONENT_H
+#ifndef KEYBOARD_CONTROL_H
+#define KEYBOARD_CONTROL_H
 
 #include "../GameState.h"
 #include "../StrHelper.h"
 #include "../Render.h"
 #include "../IComponent.h"
-#include "TransformComponent.h"
-#include "SpriteComponent.h"
+#include "Transform.h"      // component
+#include "Sprite.h"         // component
 
 
-class KeyboardControlComponent : public IComponent
+class KeyboardControl : public IComponent
 {
 public:
-    KeyboardControlComponent();
+    KeyboardControl();
 
-    KeyboardControlComponent(
+    KeyboardControl(
         const char* upKey,
         const char* rightKey,
         const char* downKey,
@@ -43,14 +43,14 @@ public:
             m_ShootKey = SDL_GetKeyFromName(shootKey);
     }
 
-    virtual ~KeyboardControlComponent() {};
+    virtual ~KeyboardControl() {};
 
     ///////////////////////////////////////////////////////
     
     virtual void Initialize() override
     {
-        m_pTransform = m_pOwner->GetComponent<TransformComponent>();
-        m_pSprite = m_pOwner->GetComponent<SpriteComponent>();
+        m_pTransform = m_pOwner->GetComponent<Transform>();
+        m_pSprite    = m_pOwner->GetComponent<Sprite>();
     }
     
     ///////////////////////////////////////////////////////
@@ -190,8 +190,8 @@ private:
     SDL_Keycode m_LeftKey = 0;
     SDL_Keycode m_ShootKey = 0;
 
-    TransformComponent* m_pTransform = nullptr;
-    SpriteComponent*    m_pSprite = nullptr;
+    Transform* m_pTransform = nullptr;   // component
+    Sprite*    m_pSprite = nullptr;      // component
 };
 
 #endif

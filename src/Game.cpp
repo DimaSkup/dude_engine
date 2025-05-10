@@ -9,9 +9,10 @@
 #include "EntityMgr.h"
 #include "AssetMgr.h"
 #include "Map.h"
-#include "Components/TransformComponent.h"
-#include "Components/SpriteComponent.h"
-#include "Components/KeyboardControlComponent.h"
+#include "Components/Transform.h"
+#include "Components/Sprite.h"
+#include "Components/KeyboardControl.h"
+#include "Components/Collider.h"
 #include "GameState.h"
 
 
@@ -106,6 +107,7 @@ void Game::Update()
     g_EntityMgr.Update(deltaTime);
 
     HandleCameraMovement();
+    CheckCollisions();
 }
 
 ///////////////////////////////////////////////////////////
@@ -113,25 +115,11 @@ void Game::Update()
 void Game::HandleCameraMovement()
 {
     Entity* pPlayer = g_EntityMgr.GetPlayer();
-    TransformComponent* pPlayerTransform = pPlayer->GetComponent<TransformComponent>();
+    Transform* pPlayerTransform = pPlayer->GetComponent<Transform>();
 
     ms_Camera.x = pPlayerTransform->m_Position.x - HALF_WND_WIDTH;
     ms_Camera.y = pPlayerTransform->m_Position.y - HALF_WND_HEIGHT;
 
-#if 0
-
-    // clamp the camera's position
-    ms_Camera.x = (ms_Camera.x < 0) ? 0 : ms_Camera.x;
-    ms_Camera.y = (ms_Camera.y < 0) ? 0 : ms_Camera.y;
-
-    const uint cameraRight  = ms_Camera.x + ms_Camera.w;
-    const uint cameraBottom = ms_Camera.y + ms_Camera.h;
-
-    // limit maximal values for top left corner of the camera rectangle
-    ms_Camera.x = (cameraRight  >= g_GameStates.levelMapWidth)  ? g_GameStates.cameraMaxX : ms_Camera.x;
-    ms_Camera.y = (cameraBottom >= g_GameStates.levelMapHeight) ? g_GameStates.cameraMaxY : ms_Camera.y;
-
-#else
     const uint cameraRight  = ms_Camera.x + ms_Camera.w;
     const uint cameraBottom = ms_Camera.y + ms_Camera.h;
 
@@ -154,10 +142,22 @@ void Game::HandleCameraMovement()
     {
         ms_Camera.y = g_GameStates.cameraMaxY;
     }
-#endif
 
     g_GameStates.cameraPosX = ms_Camera.x;
     g_GameStates.cameraPosY = ms_Camera.y;
+}
+
+///////////////////////////////////////////////////////////
+
+void Game::CheckCollisions()
+{
+    Entity* pPlayer           = g_EntityMgr.GetPlayer();
+    const eColliderTag collisionTag = g_EntityMgr.CheckEnttCollisions(pPlayer);
+
+    if (collisionTag == COLLIDER_TAG_ENEMY)
+    {
+        m_IsRunning = false;
+    }
 }
 
 ///////////////////////////////////////////////////////////
@@ -197,27 +197,36 @@ void Game::LoadLevel(const int levelNumber)
     s_pMap->LoadMap("assets/tilemaps/jungle.map", tileMapWidth, tileMapHeight);
 
     // compute full width and height of the level in pixels
-    g_GameStates.levelMapWidth = tileScale * tileSize * tileMapWidth;
+    g_GameStates.levelMapWidth  = tileScale * tileSize * tileMapWidth;
     g_GameStates.levelMapHeight = tileScale * tileSize * tileMapHeight;
 
     LogMsg("map size: %d %d", g_GameStates.levelMapWidth, g_GameStates.levelMapHeight);
 
-    // add entities and add components to the entities
+    // add and setup the "tank" entity
     Entity& enttTank = g_EntityMgr.AddEntity("tank", LAYER_ENEMY);
-    enttTank.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
-    enttTank.AddComponent<SpriteComponent>("tank-image");
+    enttTank.AddComponent<Transform>(0, 0, 20, 20, 32, 32, 1);
+    enttTank.AddComponent<Sprite>("tank-image");
+    enttTank.AddComponent<Collider>(COLLIDER_TAG_ENEMY, 0, 0, 32, 32);
 
+    // add and setup the "chopper" entity
     Entity& enttChopper = g_EntityMgr.AddEntity("chopper", LAYER_PLAYER);
-    enttChopper.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 1);
-    enttChopper.AddComponent<SpriteComponent>("chopper-image", 2, 90, true, false);
-    enttChopper.AddComponent<KeyboardControlComponent>("up", "right", "down", "left", "space");
+    enttChopper.AddComponent<Transform>(240, 106, 0, 0, 32, 32, 1);
+    constexpr bool chopperHasDirections = true;
+    constexpr bool chopperIsFixed       = false;
+    enttChopper.AddComponent<Sprite>("chopper-image", 2, 90, true, false);
+    enttChopper.AddComponent<KeyboardControl>("up", "right", "down", "left", "space");
+    enttChopper.AddComponent<Collider>(COLLIDER_TAG_PLAYER, 240, 106, 32, 32);
     g_EntityMgr.SetPlayer(&enttChopper);
 
+    // add and setup the "radar" entity
     Entity& enttRadar = g_EntityMgr.AddEntity("radar", LAYER_UI);
     const int radarOffset = 15;
     const int radarPosX = Render::GetWndWidth() - 64 - radarOffset;
-    enttRadar.AddComponent<TransformComponent>(radarPosX, 15, 0, 0, 64, 64, 1);
-    enttRadar.AddComponent<SpriteComponent>("radar-image", 8, 150, false, true);
+    enttRadar.AddComponent<Transform>(radarPosX, 15, 0, 0, 64, 64, 1);
+    constexpr bool radarHasDirections = false;
+    constexpr bool radarIsFixed       = true;
+    enttRadar.AddComponent<Sprite>("radar-image", 8, 150, radarHasDirections, radarIsFixed);
+
 
     sprintf(g_String, "level %d is loaded", levelNumber);
     LogMsg(g_String);
