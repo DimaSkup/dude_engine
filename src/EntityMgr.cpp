@@ -122,15 +122,76 @@ void EntityMgr::SetPlayer(Entity* pEntt)
 
 ///////////////////////////////////////////////////////////
 
+eCollisionType EntityMgr::CheckCollisions() const
+{
+    std::vector<Entity*> entitiesWithCollider;
+    entitiesWithCollider.reserve(64);
+
+    // get entities which have collider component
+    for (Entity* pEntt : m_Entities)
+    {
+        if (pEntt->HasComponent<Collider>())
+            entitiesWithCollider.push_back(pEntt);
+    }
+
+    // test each entity to collision with each other
+    for (Entity* pEntt : entitiesWithCollider)
+    {
+        const Collider* pCollider1    = pEntt->GetComponent<Collider>();
+        const SDL_Rect& colliderRect1 = pCollider1->m_ColliderRect;     // collider rectangle of the curr entity
+        const eColliderTag cTag       = pCollider1->m_ColliderTag;      // collider tag of the curr entity
+
+        // test with other entities
+        for (Entity* pOtherEntt : entitiesWithCollider)
+        {
+            const Collider* pCollider2    = pOtherEntt->GetComponent<Collider>();
+            const SDL_Rect& colliderRect2 = pCollider2->m_ColliderRect;
+
+            if (Collision::CheckRectCollision(colliderRect1, colliderRect2))
+            {
+                const eColliderTag cTag2 = pCollider2->m_ColliderTag;
+
+                // if the current entity is the player
+                if (cTag == eColliderTag::PLAYER)
+                {
+                    switch (cTag2)
+                    {
+                        case ENEMY:          return PLAYER_ENEMY_COLLISION;
+                        case PROJECTILE:     return PLAYER_PROJECTILE_COLLISION;
+                        case LEVEL_COMPLETE: return PLAYER_LEVEL_COMPLETE_COLLISION;
+                    } 
+                }
+
+                // else we maybe have collision btw enemy and smth
+                else if (cTag == eColliderTag::ENEMY)
+                {
+                   if (cTag2 == FRIENDLY_PROJECTILE)
+                       return ENEMY_PROJECTILE_COLLISION;
+                }
+            }
+        }
+    }
+
+    return NO_COLLISION;
+}
+
+///////////////////////////////////////////////////////////
+
 eColliderTag EntityMgr::CheckEnttCollisions(Entity* pInEntt) const
 {
-    const Collider* pCollider = pInEntt->GetComponent<Collider>();
-    const SDL_Rect& colliderRect = pCollider->m_Collider;
+    // check input entity to collision with the other entities
+    // which have the Collider component;
+    // if we found any collision we return the collider tag
 
+    const Collider* pCollider = pInEntt->GetComponent<Collider>();
+    const SDL_Rect& colliderRect = pCollider->m_ColliderRect;
+    const char* name = pInEntt->m_Name;
+
+    // go through all the entities
     for (Entity* pEntity : m_Entities)
     {
         // avoid collision test with itself and with tilemaps
-        if (strcmp(pEntity->m_Name, pInEntt->m_Name) == 0 &&
+        if (strcmp(pEntity->m_Name, name) == 0 ||
             strcmp(pEntity->m_Name, "Tile"))
             continue;
 
@@ -139,12 +200,10 @@ eColliderTag EntityMgr::CheckEnttCollisions(Entity* pInEntt) const
             const Collider* pOtherCollider = pEntity->GetComponent<Collider>();
            
             // if we have collision btw input entt and the current one
-            if (Collision::CheckRectCollision(colliderRect, pOtherCollider->m_Collider))
-            {
+            if (Collision::CheckRectCollision(colliderRect, pOtherCollider->m_ColliderRect))
                 return pOtherCollider->m_ColliderTag;
-            }
         }
     }
 
-    return eColliderTag::COLLIDER_TAG_NONE;
+    return eColliderTag::NONE;
 }

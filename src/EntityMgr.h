@@ -36,7 +36,8 @@ public:
     inline Entity* GetPlayer() const { return m_pPlayer; }
 
     // collision tests
-    eColliderTag CheckEnttCollisions(Entity* pEntt) const;
+    eCollisionType CheckCollisions() const;
+    eColliderTag   CheckEnttCollisions(Entity* pEntt) const;
 
 private:
     Entity*              m_pPlayer = nullptr;
