@@ -10,9 +10,35 @@ using uint = unsigned int;
 
 enum eColliderTag
 {
-    COLLIDER_TAG_NONE,    // means that we have no collision with anything
-    COLLIDER_TAG_PLAYER,
-    COLLIDER_TAG_ENEMY,
+    NONE,         // means that we have no collision with anything
+    PLAYER,
+    ENEMY,
+    PROJECTILE,
+    FRIENDLY_PROJECTILE,
+    LEVEL_COMPLETE,
 };
+
+enum eCollisionType 
+{
+    NO_COLLISION,
+    PLAYER_ENEMY_COLLISION,
+    PLAYER_PROJECTILE_COLLISION,
+    ENEMY_PROJECTILE_COLLISION,
+    PLAYER_VEGETATION_COLLISION,
+    PLAYER_LEVEL_COMPLETE_COLLISION,  // if we got this type of collision it means that we complete the level
+};
+
+enum eLayerType
+{
+    LAYER_TILEMAP       = 0,     // terrain, water
+    LAYER_VEGETATION    = 1,     // trees, grass
+    LAYER_ENEMY         = 2,
+    LAYER_PLAYER        = 3,
+    LAYER_PROJECTILE    = 4,  
+    LAYER_UI            = 5,
+    LAYER_OBSTACLE      = 6,
+    NUM_LAYERS,
+};
+
 
 #endif

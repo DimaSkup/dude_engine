@@ -9,17 +9,6 @@ constexpr unsigned int HALF_WND_HEIGHT = 450;
 constexpr unsigned int FPS = 60;
 constexpr float FRAME_TARGET_TIME = 1000.0f / FPS;
 
-enum eLayerType
-{
-    LAYER_TILEMAP       = 0,     // terrain, water
-    LAYER_VEGETATION    = 1,     // trees, grass
-    LAYER_ENEMY         = 2,
-    LAYER_PLAYER        = 3,
-    LAYER_PROJECTILE    = 4,  
-    LAYER_UI            = 5,
-    NUM_LAYERS,
-};
-
 //constexpr unsigned int NUM_LAYERS = 6;
 
 

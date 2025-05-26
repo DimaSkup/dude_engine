@@ -27,7 +27,7 @@ public:
         const int height)
         :
         m_ColliderTag{ colliderTag },
-        m_Collider{ x, y, width, height }
+        m_ColliderRect{ x, y, width, height }
     {
     }
 
@@ -41,7 +41,7 @@ public:
         {
             m_pTransform = m_pOwner->GetComponent<Transform>();
             m_SrcRect = {0, 0, m_pTransform->m_Width, m_pTransform->m_Height};
-            m_DstRect = m_Collider;
+            m_DstRect = m_ColliderRect;
         }
         else
         {
@@ -55,20 +55,20 @@ public:
     virtual void Update(const float deltaTime) override
     {
         Transform* pT = m_pTransform;
-        m_Collider.x = (int)pT->m_Position.x;
-        m_Collider.y = (int)pT->m_Position.y;
-        m_Collider.w = pT->m_Width * pT->m_Scale;
-        m_Collider.h = pT->m_Height * pT->m_Scale;
+        m_ColliderRect.x = (int)pT->m_Position.x;
+        m_ColliderRect.y = (int)pT->m_Position.y;
+        m_ColliderRect.w = pT->m_Width * pT->m_Scale;
+        m_ColliderRect.h = pT->m_Height * pT->m_Scale;
 
-        m_DstRect.x = m_Collider.x - g_GameStates.cameraPosX;
-        m_DstRect.y = m_Collider.y - g_GameStates.cameraPosY;
+        m_DstRect.x = m_ColliderRect.x - g_GameStates.cameraPosX;
+        m_DstRect.y = m_ColliderRect.y - g_GameStates.cameraPosY;
     }
 
     virtual const char* GetName() const override { return "Collider (Component)"; }
 
 public:
     eColliderTag m_ColliderTag;
-    SDL_Rect     m_Collider;
+    SDL_Rect     m_ColliderRect;
     SDL_Rect     m_SrcRect;
     SDL_Rect     m_DstRect;
     Transform*   m_pTransform = nullptr;

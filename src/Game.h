@@ -30,6 +30,8 @@ public:
     void HandleCameraMovement();
     void CheckCollisions();
 
+    void ProcessNextLevel(const int levelNumber);
+    void ProcessGameOver();
     inline bool IsRunning() const { return m_Running; }
 
 private:

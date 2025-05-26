@@ -154,13 +154,37 @@ void Game::HandleCameraMovement()
 
 void Game::CheckCollisions()
 {
-    Entity* pPlayer           = g_EntityMgr.GetPlayer();
-    const eColliderTag collisionTag = g_EntityMgr.CheckEnttCollisions(pPlayer);
+    const eCollisionType cType = g_EntityMgr.CheckCollisions();
 
-    if (collisionTag == COLLIDER_TAG_ENEMY)
+    switch (cType)
     {
-        m_Running = false;
+        case PLAYER_ENEMY_COLLISION:
+        {
+            ProcessGameOver();
+            break;
+        }
+        case PLAYER_LEVEL_COMPLETE_COLLISION:
+        {
+            ProcessNextLevel(1);
+            break;
+        }
     }
+}
+
+///////////////////////////////////////////////////////////
+
+void Game::ProcessNextLevel(const int levelNumber)
+{
+    LogMsg("Next level");
+    m_Running = false;
+}
+
+///////////////////////////////////////////////////////////
+
+void Game::ProcessGameOver()
+{
+    LogMsg("Game Over");
+    m_Running = false;
 }
 
 ///////////////////////////////////////////////////////////
@@ -202,7 +226,7 @@ void Game::Render()
     if (g_EntityMgr.HasNoEntts())
         return;
     
-    // call the EntityMgr::Render() to render all the entities
+    // render all the entities
     g_EntityMgr.Render();
 
     // render visualization of AABB if need (call it after the main rendering process)
@@ -225,10 +249,11 @@ void Game::LoadLevel(const int levelNumber)
     g_AssetMgr.AddTexture("chopper-image",      "assets/images/chopper-spritesheet.png");
     g_AssetMgr.AddTexture("bounding-box",       "assets/images/collision-texture.png");
     g_AssetMgr.AddTexture("radar-image",        "assets/images/radar.png");
+    g_AssetMgr.AddTexture("heliport-image",     "assets/images/heliport.png");
     g_AssetMgr.AddTexture("jungle-tiletexture", "assets/tilemaps/jungle.png");
 
     // load tilemap and create tile entities
-    constexpr int tileScale = 4;
+    constexpr int tileScale = 2;
     constexpr int tileSize = 32;
     s_pMap = new Map("jungle-tiletexture", tileScale, tileSize);
 
@@ -246,7 +271,13 @@ void Game::LoadLevel(const int levelNumber)
     Entity& enttTank = g_EntityMgr.AddEntity("tank", LAYER_ENEMY);
     enttTank.AddComponent<Transform>(0, 0, 20, 20, 32, 32, 1);
     enttTank.AddComponent<Sprite>("tank-image");
-    enttTank.AddComponent<Collider>(COLLIDER_TAG_ENEMY, 0, 0, 32, 32);
+    enttTank.AddComponent<Collider>(eColliderTag::ENEMY, 0, 0, 32, 32);
+
+    // add "heliport" entity
+    Entity& heliport = g_EntityMgr.AddEntity("Heliport", LAYER_OBSTACLE);
+    heliport.AddComponent<Transform>(470, 420, 0, 0, 32, 32, 1);
+    heliport.AddComponent<Sprite>("heliport-image");
+    heliport.AddComponent<Collider>(eColliderTag::LEVEL_COMPLETE, 470, 420, 32, 32);
 
     // add and setup the "chopper" entity
     Entity& enttChopper = g_EntityMgr.AddEntity("chopper", LAYER_PLAYER);
@@ -255,7 +286,7 @@ void Game::LoadLevel(const int levelNumber)
     constexpr bool chopperIsFixed       = false;
     enttChopper.AddComponent<Sprite>("chopper-image", 2, 90, true, false);
     enttChopper.AddComponent<KeyboardControl>("up", "right", "down", "left", "space");
-    enttChopper.AddComponent<Collider>(COLLIDER_TAG_PLAYER, 240, 106, 32, 32);
+    enttChopper.AddComponent<Collider>(eColliderTag::PLAYER, 240, 106, 32, 32);
     g_EntityMgr.SetPlayer(&enttChopper);
 
     // add and setup the "radar" entity
