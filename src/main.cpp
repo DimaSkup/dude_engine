@@ -10,8 +10,10 @@ int main(int argc, char* args[])
 
     Render render;
     Game game;
+
+    constexpr bool isFullScreen = true;
     
-    render.Initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    render.Initialize(WINDOW_WIDTH, WINDOW_HEIGHT, isFullScreen);
     game.Initialize();
 
     LogMsg("Game is running...");

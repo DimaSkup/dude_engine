@@ -16,7 +16,7 @@ public:
 };
 
 // ==================================================================
-// Declare global instance of the Texture Manager
+// Declare a global instance of the Texture Manager
 // ==================================================================
 extern TextureMgr g_TextureMgr;
 

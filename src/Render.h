@@ -13,7 +13,11 @@
 class Render
 {
 public:
-    bool Initialize(const int wndWidth, const int wndHeight);
+    bool Initialize(
+        const int wndWidth, 
+        const int wndHeight,
+        const bool isFullscreen);
+
     void Shutdown();
 
     static void DrawRectFilled(

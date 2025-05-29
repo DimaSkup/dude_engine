@@ -12,6 +12,7 @@
 #include "IComponent.h"
 #include <vector>
 #include <map>
+#include <string>
 
 class EntityMgr
 {
@@ -35,6 +36,8 @@ public:
     void           SetPlayer(Entity* pEntt);
     inline Entity* GetPlayer() const { return m_pPlayer; }
 
+    Entity* GetEnttByName(const char* name);
+
     // collision tests
     eCollisionType CheckCollisions() const;
     eColliderTag   CheckEnttCollisions(Entity* pEntt) const;
@@ -43,6 +46,7 @@ private:
     Entity*              m_pPlayer = nullptr;
     std::vector<Entity*> m_Entities;
 
+    std::map<std::string, Entity*>             m_EnttsByNames;
     std::map<eLayerType, std::vector<Entity*>> m_EnttsByLayers;
 };
 

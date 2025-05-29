@@ -6,7 +6,7 @@
 // ==================================================================
 #include "Render.h"
 #include "Log.h"
-
+#include <SDL2/SDL_ttf.h>
 
 // init some globals 
 SDL_Window*   g_pWindow   = nullptr;
@@ -19,7 +19,10 @@ int Render::ms_WndHeight = 600;
 
 ///////////////////////////////////////////////////////////
 
-bool Render::Initialize(const int wndWidth, const int wndHeight)
+bool Render::Initialize(
+    const int wndWidth,       // window width for windowed mode
+    const int wndHeight,      // window height for windowed mode
+    const bool isFullscreen)
 {
     LogMsg(LOG_INFO, "Start of the game initialization");
 
@@ -29,12 +32,40 @@ bool Render::Initialize(const int wndWidth, const int wndHeight)
         return false;        
     }
 
+    if (TTF_Init() != 0)
+    {
+        LogErr(LOG_INFO, "Error initializing SDL TTF");
+        return false;
+    }
+
+    int width = 0;
+    int height = 0;
+
+    if (isFullscreen)
+    {
+        // use SDL to query what is the fullscreen max width and height
+        SDL_DisplayMode displayMode;
+        SDL_GetCurrentDisplayMode(0, &displayMode);
+
+        width  = displayMode.w;
+        height = displayMode.h;
+    }
+
+    // windowed mode
+    else
+    {
+        width  = wndWidth;
+        height = wndHeight;
+    }
+    
+
+    // create a SDL window
     g_pWindow = SDL_CreateWindow(
         "dude_engine",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        wndWidth,
-        wndHeight,
+        width,
+        height,
         SDL_WINDOW_BORDERLESS);
 
     if (g_pWindow == nullptr)
@@ -42,7 +73,8 @@ bool Render::Initialize(const int wndWidth, const int wndHeight)
         LogErr(LOG_INFO, "Error initializing window");
         return false;
     }
-    
+   
+    // create a SDL renderer 
     g_pRenderer = SDL_CreateRenderer(g_pWindow, -1, 0);
     if (g_pRenderer == nullptr)
     {
@@ -50,8 +82,15 @@ bool Render::Initialize(const int wndWidth, const int wndHeight)
         return false;
     }
 
-    ms_WndWidth = wndWidth;
-    ms_WndHeight = wndHeight;
+    // go to the fullscreen mode and hide cursor
+    if (isFullscreen)
+    {
+        SDL_SetWindowFullscreen(g_pWindow, SDL_WINDOW_FULLSCREEN);
+        SDL_ShowCursor(SDL_DISABLE);
+    }
+
+    ms_WndWidth  = width;
+    ms_WndHeight = height;
 
     LogMsg("Render is initialized!");
     return true;

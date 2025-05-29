@@ -5,6 +5,7 @@
 // ==================================================================
 #include "AssetMgr.h"
 #include "TextureMgr.h"
+#include "FontMgr.h"
 #include "Log.h"
 #include "StrHelper.h"
 
@@ -29,7 +30,14 @@ AssetMgr::~AssetMgr()
 
 void AssetMgr::ClearData()
 {
+    for (auto& it : m_Textures)
+        SDL_DestroyTexture(it.second);
+
+    for (auto& it : m_Fonts)
+        TTF_CloseFont(it.second);
+
     m_Textures.clear();
+    m_Fonts.clear();
 }
 
 ///////////////////////////////////////////////////////////
@@ -58,8 +66,48 @@ void AssetMgr::AddTexture(const char* textureID, const char* filePath)
 
 ///////////////////////////////////////////////////////////
 
+void AssetMgr::AddFont(
+    const char* fontID, 
+    const char* filePath, 
+    int fontSize)
+{
+    // load a font by the filePath, and set an ID and size for it
+
+    if (IsStrEmpty(fontID))
+    {
+        LogErr(LOG_INFO, "input font ID is empty");
+        return;
+    }
+
+    if (IsStrEmpty(filePath))
+    {
+        LogErr(LOG_INFO, "input file path is empty");
+        return;
+    }
+
+    if (fontSize <= 0)
+    {
+        LogErr(LOG_INFO, "input font size must be > 0");
+        return;
+    }
+
+    TTF_Font* pFont = FontMgr::LoadFont(filePath, fontSize);
+    if (!pFont)
+    {
+        sprintf(g_String, "can't to load font from file: %s", filePath);
+        LogErr(LOG_INFO, g_String);
+        return;
+    }
+
+    m_Fonts.emplace(fontID, pFont);
+}
+
+///////////////////////////////////////////////////////////
+
 SDL_Texture* AssetMgr::GetTexture(const char* textureID)
 {
+    // get a texture by input ID
+
     if (IsStrEmpty(textureID))
     {
         LogErr(LOG_INFO, "input texture ID is empty");
@@ -69,6 +117,23 @@ SDL_Texture* AssetMgr::GetTexture(const char* textureID)
     const bool hasTexture = (m_Textures.find(textureID) != m_Textures.end());
 
     return (hasTexture) ? m_Textures[textureID] : nullptr;
+}
+
+///////////////////////////////////////////////////////////
+
+TTF_Font* AssetMgr::GetFont(const char* fontID)
+{
+    // get a font by input ID
+
+    if (IsStrEmpty(fontID))
+    {
+        LogErr(LOG_INFO, "input font ID is empty");
+        return nullptr;
+    }
+
+    const bool hasFont = (m_Fonts.find(fontID) != m_Fonts.end());
+
+    return (hasFont) ? m_Fonts[fontID] : nullptr;
 }
 
 ///////////////////////////////////////////////////////////

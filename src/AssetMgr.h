@@ -9,6 +9,7 @@
 
 #include "EntityMgr.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <map>
 #include <string>
 
@@ -23,16 +24,22 @@ public:
     void ClearData();
 
     void AddTexture(const char* textureID, const char* filePath);
+    void AddFont   (const char* fontID, const char* filePath, const int fontSize);
+
     SDL_Texture* GetTexture(const char* textureID);
+    TTF_Font*    GetFont   (const char* fontID);
+
     SDL_Point    GetTextureSize(SDL_Texture* pTexture);
 
 private:
     EntityMgr*                          m_pEnttMgr = nullptr;
     std::map<std::string, SDL_Texture*> m_Textures;
+    std::map<std::string, TTF_Font*>    m_Fonts;
 };
 
+
 // ==================================================================
-// Declare global instance of the Asset Manager
+// Declare a global instance of the Asset Manager
 // ==================================================================
 extern AssetMgr g_AssetMgr;
 

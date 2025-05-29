@@ -8,11 +8,12 @@
 #include "Log.h"
 #include "EntityMgr.h"
 #include "AssetMgr.h"
-#include "Map.h"
+#include "Map.h"                         // for tilemaps
 #include "Components/Transform.h"
 #include "Components/Sprite.h"
 #include "Components/KeyboardControl.h"
 #include "Components/Collider.h"
+#include "Components/TextLabel.h"
 #include "GameState.h"
 
 
@@ -20,10 +21,16 @@
 SDL_Event Game::ms_Event;
 SDL_Rect  Game::ms_Camera = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
+const SDL_Color WHITE_COLOR = { 255, 255, 255, 255 };
+const SDL_Color GREEN_COLOR = { 0, 255, 0, 255 };
+
+
+// static pointer to the tilemap
 Map* s_pMap = nullptr;
 
 // init some globals
 GameStates g_GameStates;
+
 ///////////////////////////////////////////////////////////
 
 Game::Game() : m_Running(false)
@@ -41,6 +48,8 @@ Game::~Game()
 void Game::Initialize()
 {
     LoadLevel(0);
+
+    m_PrevTicks = SDL_GetTicks();
 
     m_Running = true;
 
@@ -91,26 +100,53 @@ void Game::ProcessInput()
 void Game::Update()
 {
     // speep the execution until we reach the target frame time in ms
-    const int timeToWait = FRAME_TARGET_TIME - ((SDL_GetTicks() - m_TicksLastFrame));
+    //const int timeToWait = FRAME_TARGET_TIME - ((SDL_GetTicks() - m_TicksLastFrame));
 
     // only call delay if we are too fast to process this frame
-    if (timeToWait > 0 && timeToWait <= FRAME_TARGET_TIME)
-        SDL_Delay(timeToWait);
+    //if (timeToWait > 0 && timeToWait <= FRAME_TARGET_TIME)
+    //    SDL_Delay(timeToWait);
 
     // difference in ticks from last frame converted to seconds
-    float deltaTime = (SDL_GetTicks() - m_TicksLastFrame) * 0.001f; 
+    const uint32_t ticksNow = SDL_GetTicks();
+    const uint32_t diff = (ticksNow - m_PrevTicks);
+
+    m_FpsCounter += diff;
+    m_FramesDrawn++;
+
+    float deltaTime = (float)diff * 0.001f; 
 
     // set the new ticks count for the current frame to be used in the next pass
-    m_TicksLastFrame = SDL_GetTicks();
+    m_PrevTicks = ticksNow;
+
+    // compute actual fps value if necessary
+    if (m_FpsCounter >= 1000)
+    {
+        m_FpsValue = (float)m_FramesDrawn / (float)(m_FpsCounter * 0.001f);
+        m_FpsCounter = 0;
+        m_FramesDrawn = 0;
+    }
  
     // clamp deltaTime to a maximum value
-    deltaTime = (deltaTime > FRAME_TARGET_TIME) ? FRAME_TARGET_TIME : deltaTime;
+    deltaTime = (deltaTime > 16.6f) ? 16.6f : deltaTime;
 
-    // call the EntityMgr::Update() to update all the entities
+    // update all the entities
     g_EntityMgr.Update(deltaTime);
 
     HandleCameraMovement();
     CheckCollisions();
+
+    // update UI text
+    Entity* pFpsCount  = g_EntityMgr.GetEnttByName("fps");
+    Entity* pDeltaTime = g_EntityMgr.GetEnttByName("delta time");
+
+    char fpsBuf[32]{'\0'};
+    char deltaTimeBuf[32]{'\0'};
+
+    sprintf(fpsBuf, "Fps: %d", (int)m_FpsValue);
+    sprintf(deltaTimeBuf, "Delta time: %d ms", diff);
+
+    pFpsCount->GetComponent<TextLabel>()->SetLabelText(fpsBuf, "charriot-font");
+    pDeltaTime->GetComponent<TextLabel>()->SetLabelText(deltaTimeBuf, "charriot-font");
 }
 
 ///////////////////////////////////////////////////////////
@@ -232,6 +268,37 @@ void Game::Render()
     // render visualization of AABB if need (call it after the main rendering process)
     if (m_ShowAABB)
         RenderColliderAABB();
+
+    // render UI text onto the screen
+    RenderFont();
+}
+
+///////////////////////////////////////////////////////////
+
+void Game::RenderFont()
+{
+    // render the text (UI elements) onto the screen
+
+    // get entities with TextLabel component
+    Entity* enttsWithTextLabel[32]{nullptr};
+    int numEntts = 0;
+
+    for (Entity* pEntt : g_EntityMgr.GetEntts())
+    {
+        enttsWithTextLabel[numEntts] = pEntt;
+        numEntts += (pEntt->HasComponent<TextLabel>());
+    }
+
+    for (int i = 0; i < numEntts; ++i)
+    {
+        TextLabel* pComponent = enttsWithTextLabel[i]->GetComponent<TextLabel>();
+
+        SDL_RenderCopy(
+            g_pRenderer, 
+            pComponent->GetTexture(), 
+            NULL, 
+            &pComponent->GetPosition());
+    }
 }
 
 ///////////////////////////////////////////////////////////
@@ -251,6 +318,10 @@ void Game::LoadLevel(const int levelNumber)
     g_AssetMgr.AddTexture("radar-image",        "assets/images/radar.png");
     g_AssetMgr.AddTexture("heliport-image",     "assets/images/heliport.png");
     g_AssetMgr.AddTexture("jungle-tiletexture", "assets/tilemaps/jungle.png");
+
+    // load in a font
+    constexpr int fontSize = 14;
+    g_AssetMgr.AddFont("charriot-font", "assets/fonts/charriot.ttf", fontSize);
 
     // load tilemap and create tile entities
     constexpr int tileScale = 2;
@@ -298,6 +369,15 @@ void Game::LoadLevel(const int levelNumber)
     constexpr bool radarIsFixed       = true;
     enttRadar.AddComponent<Sprite>("radar-image", 8, 150, radarHasDirections, radarIsFixed);
 
+    // create text entities
+    Entity& labelLevelName = g_EntityMgr.AddEntity("LabelLevelName", LAYER_UI);
+    labelLevelName.AddComponent<TextLabel>(10, 10, "First level...", "charriot-font", WHITE_COLOR); 
+
+    Entity& fpsText = g_EntityMgr.AddEntity("fps", LAYER_UI);
+    fpsText.AddComponent<TextLabel>(10, 30, "Fps: 0", "charriot-font", WHITE_COLOR);
+
+    Entity& deltaTimeText = g_EntityMgr.AddEntity("delta time", LAYER_UI);
+    deltaTimeText.AddComponent<TextLabel>(10, 50, "Delta time: 0ms", "charriot-font", WHITE_COLOR);
 
     sprintf(g_String, "level %d is loaded", levelNumber);
     LogMsg(g_String);
