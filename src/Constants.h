@@ -9,7 +9,4 @@ constexpr unsigned int HALF_WND_HEIGHT = 450;
 constexpr unsigned int FPS = 60;
 constexpr float FRAME_TARGET_TIME = 1000.0f / FPS;
 
-//constexpr unsigned int NUM_LAYERS = 6;
-
-
 #endif

@@ -29,6 +29,8 @@ void EntityMgr::ClearData()
     }
 
     m_Entities.clear();
+    m_EnttsByNames.clear();
+    m_EnttsByLayers.clear();
 }
 
 ///////////////////////////////////////////////////////////
@@ -64,9 +66,32 @@ Entity& EntityMgr::AddEntity(const char* enttName, const eLayerType layer)
     Entity* pEntt = new Entity(*this, enttName, layer);
 
     m_Entities.emplace_back(pEntt);                // add this entt into the main array of entities
+    m_EnttsByNames.insert({ enttName, pEntt });
     m_EnttsByLayers[layer].emplace_back(pEntt);    // add this entt into the map of entities by layers (so we relate this entity to particular layer)
 
     return *pEntt;
+}
+
+///////////////////////////////////////////////////////////
+
+Entity* EntityMgr::GetEnttByName(const char* name)
+{
+    if (!name || name[0] == '\0')
+    {
+        LogErr("input entity name is empty");
+        return nullptr;
+    }
+
+    if (m_EnttsByNames.find(name) != m_EnttsByNames.end())
+    {
+        return m_EnttsByNames[name];
+    }
+    else
+    {
+        sprintf(g_String, "There is no entity by name: %s", name);
+        LogErr(g_String);
+        return nullptr;
+    }
 }
 
 ///////////////////////////////////////////////////////////

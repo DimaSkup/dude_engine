@@ -64,7 +64,12 @@ public:
         m_DstRect.y = m_ColliderRect.y - g_GameStates.cameraPosY;
     }
 
-    virtual const char* GetName() const override { return "Collider (Component)"; }
+    ///////////////////////////////////////////////////////
+
+    virtual const char* GetName() const override 
+    { 
+        return "Collider (Component)"; 
+    }
 
 public:
     eColliderTag m_ColliderTag;
