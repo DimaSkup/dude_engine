@@ -21,6 +21,7 @@ public:
 
     void ClearData();
     void Update(const float deltaTime);
+    void DestroyInactiveEntts();
     void Render();
 
     inline bool HasNoEntts()  const { return m_Entities.empty(); }

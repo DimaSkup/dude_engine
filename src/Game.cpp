@@ -14,6 +14,7 @@
 #include "Components/KeyboardControl.h"
 #include "Components/Collider.h"
 #include "Components/TextLabel.h"
+#include "Components/ProjectileEmmiter.h"
 #include "GameState.h"
 
 
@@ -195,6 +196,7 @@ void Game::CheckCollisions()
     switch (cType)
     {
         case PLAYER_ENEMY_COLLISION:
+        case PLAYER_PROJECTILE_COLLISION:
         {
             ProcessGameOver();
             break;
@@ -317,6 +319,7 @@ void Game::LoadLevel(const int levelNumber)
     g_AssetMgr.AddTexture("bounding-box",       "assets/images/collision-texture.png");
     g_AssetMgr.AddTexture("radar-image",        "assets/images/radar.png");
     g_AssetMgr.AddTexture("heliport-image",     "assets/images/heliport.png");
+    g_AssetMgr.AddTexture("projectile-image",   "assets/images/bullet-enemy.png");
     g_AssetMgr.AddTexture("jungle-tiletexture", "assets/tilemaps/jungle.png");
 
     // load in a font
@@ -340,10 +343,17 @@ void Game::LoadLevel(const int levelNumber)
 
     // add and setup the "tank" entity
     Entity& enttTank = g_EntityMgr.AddEntity("tank", LAYER_ENEMY);
-    enttTank.AddComponent<Transform>(0, 0, 20, 20, 32, 32, 1);
+    enttTank.AddComponent<Transform>(150, 495, 5, 0, 32, 32, 1);
     enttTank.AddComponent<Sprite>("tank-image");
     enttTank.AddComponent<Collider>(eColliderTag::ENEMY, 0, 0, 32, 32);
 
+    // add "projectile" entity
+    Entity& projectile = g_EntityMgr.AddEntity("projectile", LAYER_PROJECTILE);
+    projectile.AddComponent<Transform>(166, 511, 0, 0, 4, 4, 1);
+    projectile.AddComponent<Sprite>("projectile-image");
+    projectile.AddComponent<Collider>(eColliderTag::PROJECTILE, 166, 511, 4, 4); 
+    projectile.AddComponent<ProjectileEmmiter>(50, 270, 200, true);
+            
     // add "heliport" entity
     Entity& heliport = g_EntityMgr.AddEntity("Heliport", LAYER_OBSTACLE);
     heliport.AddComponent<Transform>(470, 420, 0, 0, 32, 32, 1);
