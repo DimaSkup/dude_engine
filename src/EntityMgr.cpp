@@ -41,6 +41,21 @@ void EntityMgr::Update(const float deltaTime)
     {
         pEntt->Update(deltaTime);
     }
+
+    DestroyInactiveEntts();
+}
+
+///////////////////////////////////////////////////////////
+
+void EntityMgr::DestroyInactiveEntts()
+{
+    // TODO: optimize
+    
+    for (int i = 0; i < (int)m_Entities.size(); ++i)
+    {
+        if (!m_Entities[i]->IsActive())
+            m_Entities.erase(m_Entities.begin() + i);
+    }
 }
 
 ///////////////////////////////////////////////////////////
