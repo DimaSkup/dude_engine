@@ -30,13 +30,13 @@ public:
     {
         if (IsStrEmpty(text))
         {
-            LogErr("input text str is empty");
+            LogErr(LOG, "input text str is empty");
             return;
         }
 
         if (IsStrEmpty(fontFamily))
         {
-            LogErr("input font family str is empty");
+            LogErr(LOG, "input font family str is empty");
             return;
         }
 

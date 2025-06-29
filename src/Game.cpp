@@ -48,7 +48,7 @@ Game::~Game()
 
 void Game::Initialize()
 {
-    LoadLevel(0);
+    LoadLevel(1);
 
     m_PrevTicks = SDL_GetTicks();
 
@@ -64,7 +64,7 @@ void Game::Initialize()
     g_GameStates.cameraMaxX = g_GameStates.levelMapWidth  - ms_Camera.w;
     g_GameStates.cameraMaxY = g_GameStates.levelMapHeight - ms_Camera.h;
 
-    LogMsg(LOG_INFO, "The game is initialized!");
+    LogMsg(LOG, "The game is initialized!");
 }
 
 ///////////////////////////////////////////////////////////
@@ -213,7 +213,7 @@ void Game::CheckCollisions()
 
 void Game::ProcessNextLevel(const int levelNumber)
 {
-    LogMsg("Next level");
+    LogMsg(LOG, "Next level");
     m_Running = false;
 }
 
@@ -221,7 +221,7 @@ void Game::ProcessNextLevel(const int levelNumber)
 
 void Game::ProcessGameOver()
 {
-    LogMsg("Game Over");
+    LogMsg(LOG, "Game Over");
     m_Running = false;
 }
 
@@ -309,27 +309,115 @@ void Game::Destroy()
 {
 }
 
+//---------------------------------------------------------
+// Desc:   load assets from lua config file
+// Args:   - levelData: a table of all the level's data
+//---------------------------------------------------------
+int LoadAssets(sol::table levelData)
+{
+#if 0
+    // start loading new assets into the Asset Manager list
+    g_AssetMgr.AddTexture("tank-texture-big-left",         "assets/images/tank-big-right.png");
+    g_AssetMgr.AddTexture("chopper-texture",      "assets/images/chopper-spritesheet.png");
+    g_AssetMgr.AddTexture("bounding-box",       "assets/images/collision-texture.png");
+    g_AssetMgr.AddTexture("radar-texture",        "assets/images/radar.png");
+    g_AssetMgr.AddTexture("heliport-texture",     "assets/images/heliport.png");
+    g_AssetMgr.AddTexture("projectile-texture",   "assets/images/bullet-enemy.png");
+    g_AssetMgr.AddTexture("terrain-texture-day", "assets/tilemaps/jungle.png");
+#else
+
+    sol::table assets = levelData["assets"];
+
+    // load in assets
+    int assetIdx = 0;
+    std::string assetType(16, ' ');
+    std::string assetId(64, ' ');
+    std::string assetPath(128, ' ');
+
+    while (true)
+    {
+        sol::optional<sol::table> existsAssetIdxNode = assets[assetIdx];
+
+        // we reached the end of table or there is no data at all
+        if (existsAssetIdxNode == sol::nullopt)
+        {
+            break;
+        }
+        else
+        {
+            sol::table asset = assets[assetIdx];
+            assetType = asset["type"];
+            assetId = asset["id"];
+            assetPath = asset["file"];
+
+            // we want to load some texture
+            if (assetType == "texture")
+            {
+                g_AssetMgr.AddTexture(assetId.c_str(), assetPath.c_str());
+            }
+
+            // load some font
+            else if(assetType == "font")
+            {
+                const int fontSize = asset["fontSize"];
+                g_AssetMgr.AddFont(assetId.c_str(), assetPath.c_str(), fontSize);
+            }
+        }
+
+        assetIdx++;
+    }
+#endif
+
+    return 0;
+}
+
+//---------------------------------------------------------
+// Desc:   load level's data from lua script
+// Args:   - levelNumber: which level we will load
+//---------------------------------------------------------
+void LoadLevelFromLuaScript(const int levelNumber)
+{
+    // define the filename to load level
+    char levelName[32]{'\0'};
+    char luaScriptPath[64]{'\0'};
+
+    snprintf(levelName, 32, "%s%d", "Level", levelNumber);
+    LogDbg(LOG, "Load level: %s", levelName);
+
+    // load level from .lua file
+    sol::state lua;
+    lua.open_libraries(sol::lib::base, sol::lib::os, sol::lib::math);
+
+    snprintf(
+        luaScriptPath, 
+        64, 
+        "%s%s%s", 
+        "./assets/scripts/", 
+        levelName, 
+        ".lua");
+
+    LogDbg(LOG, "Load level from lua file: %s", luaScriptPath);
+    lua.script_file(luaScriptPath);
+
+    // load stuff from lua script
+    LoadAssets(lua[levelName]);
+}
+
 ///////////////////////////////////////////////////////////
 
 void Game::LoadLevel(const int levelNumber)
 {
-    // start loading new assets into the Asset Manager list
-    g_AssetMgr.AddTexture("tank-image",         "assets/images/tank-big-right.png");
-    g_AssetMgr.AddTexture("chopper-image",      "assets/images/chopper-spritesheet.png");
-    g_AssetMgr.AddTexture("bounding-box",       "assets/images/collision-texture.png");
-    g_AssetMgr.AddTexture("radar-image",        "assets/images/radar.png");
-    g_AssetMgr.AddTexture("heliport-image",     "assets/images/heliport.png");
-    g_AssetMgr.AddTexture("projectile-image",   "assets/images/bullet-enemy.png");
-    g_AssetMgr.AddTexture("jungle-tiletexture", "assets/tilemaps/jungle.png");
+    LoadLevelFromLuaScript(levelNumber);
+
 
     // load in a font
-    constexpr int fontSize = 14;
-    g_AssetMgr.AddFont("charriot-font", "assets/fonts/charriot.ttf", fontSize);
+    //constexpr int fontSize = 14;
+    //g_AssetMgr.AddFont("charriot-font", "assets/fonts/charriot.ttf", fontSize);
 
     // load tilemap and create tile entities
     constexpr int tileScale = 2;
     constexpr int tileSize = 32;
-    s_pMap = new Map("jungle-tiletexture", tileScale, tileSize);
+    s_pMap = new Map("terrain-texture-day", tileScale, tileSize);
 
     constexpr int tileMapWidth = 25;
     constexpr int tileMapHeight = 20;
@@ -339,25 +427,25 @@ void Game::LoadLevel(const int levelNumber)
     g_GameStates.levelMapWidth  = tileScale * tileSize * tileMapWidth;
     g_GameStates.levelMapHeight = tileScale * tileSize * tileMapHeight;
 
-    LogMsg("map size: %d %d", g_GameStates.levelMapWidth, g_GameStates.levelMapHeight);
+    LogMsg(LOG, "map size: %d %d", g_GameStates.levelMapWidth, g_GameStates.levelMapHeight);
 
     // add and setup the "tank" entity
     Entity& enttTank = g_EntityMgr.AddEntity("tank", LAYER_ENEMY);
     enttTank.AddComponent<Transform>(150, 495, 5, 0, 32, 32, 1);
-    enttTank.AddComponent<Sprite>("tank-image");
+    enttTank.AddComponent<Sprite>("tank-texture-big-left");
     enttTank.AddComponent<Collider>(eColliderTag::ENEMY, 0, 0, 32, 32);
 
     // add "projectile" entity
     Entity& projectile = g_EntityMgr.AddEntity("projectile", LAYER_PROJECTILE);
     projectile.AddComponent<Transform>(166, 511, 0, 0, 4, 4, 1);
-    projectile.AddComponent<Sprite>("projectile-image");
+    projectile.AddComponent<Sprite>("projectile-texture");
     projectile.AddComponent<Collider>(eColliderTag::PROJECTILE, 166, 511, 4, 4); 
     projectile.AddComponent<ProjectileEmmiter>(50, 270, 200, true);
             
     // add "heliport" entity
     Entity& heliport = g_EntityMgr.AddEntity("Heliport", LAYER_OBSTACLE);
     heliport.AddComponent<Transform>(470, 420, 0, 0, 32, 32, 1);
-    heliport.AddComponent<Sprite>("heliport-image");
+    heliport.AddComponent<Sprite>("heliport-texture");
     heliport.AddComponent<Collider>(eColliderTag::LEVEL_COMPLETE, 470, 420, 32, 32);
 
     // add and setup the "chopper" entity
@@ -365,7 +453,7 @@ void Game::LoadLevel(const int levelNumber)
     enttChopper.AddComponent<Transform>(240, 106, 0, 0, 32, 32, 1);
     constexpr bool chopperHasDirections = true;
     constexpr bool chopperIsFixed       = false;
-    enttChopper.AddComponent<Sprite>("chopper-image", 2, 90, true, false);
+    enttChopper.AddComponent<Sprite>("chopper-texture", 2, 90, true, false);
     enttChopper.AddComponent<KeyboardControl>("up", "right", "down", "left", "space");
     enttChopper.AddComponent<Collider>(eColliderTag::PLAYER, 240, 106, 32, 32);
     g_EntityMgr.SetPlayer(&enttChopper);
@@ -377,7 +465,7 @@ void Game::LoadLevel(const int levelNumber)
     enttRadar.AddComponent<Transform>(radarPosX, 15, 0, 0, 64, 64, 1);
     constexpr bool radarHasDirections = false;
     constexpr bool radarIsFixed       = true;
-    enttRadar.AddComponent<Sprite>("radar-image", 8, 150, radarHasDirections, radarIsFixed);
+    enttRadar.AddComponent<Sprite>("radar-texture", 8, 150, radarHasDirections, radarIsFixed);
 
     // create text entities
     Entity& labelLevelName = g_EntityMgr.AddEntity("LabelLevelName", LAYER_UI);
@@ -389,7 +477,6 @@ void Game::LoadLevel(const int levelNumber)
     Entity& deltaTimeText = g_EntityMgr.AddEntity("delta time", LAYER_UI);
     deltaTimeText.AddComponent<TextLabel>(10, 50, "Delta time: 0ms", "charriot-font", WHITE_COLOR);
 
-    sprintf(g_String, "level %d is loaded", levelNumber);
-    LogMsg(g_String);
+    LogMsg(LOG, "level %d is loaded", levelNumber);
 }
 

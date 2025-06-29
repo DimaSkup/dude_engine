@@ -16,11 +16,9 @@ Map::Map(
     m_TileSize(tileSize) 
 {
     if (IsStrEmpty(textureID))
-        LogErr("input texture ID is empty!");
+        LogErr(LOG, "input texture ID is empty!");
 
-    sprintf(g_String, "creation of a new map with texture ID: %s", textureID);
-    LogMsg(g_String);
-
+    LogMsg(LOG, "creation of a new map with texture ID: %s", textureID);
     m_TextureID = textureID;
 }
 
@@ -35,7 +33,7 @@ void Map::LoadMap(
 
     if (IsStrEmpty(filePath))
     {
-        LogErr("input filePath is empty!");
+        LogErr(LOG, "input filePath is empty!");
         return;
     }
 
@@ -44,7 +42,7 @@ void Map::LoadMap(
     
     if ((pFile = fopen(filePath, "r+")) == nullptr)
     {
-        LogErr("can't open a file by path: %s", filePath);
+        LogErr(LOG, "can't open a file by path: %s", filePath);
         return;
     }
 

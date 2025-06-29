@@ -12,7 +12,14 @@
 class FileSys
 {
 public:
-    inline static bool IsPathEmpty(const char* path) { return (!path || path[0] == '\0'); }
+
+    //-----------------------------------------------------
+    // Desc:   check if input path is an empty string
+    // Args:   - path:   a string with path to file
+    // Ret:    true if input str is empty
+    //-----------------------------------------------------
+    inline static bool IsPathEmpty(const char* path) 
+    {   return (!path || path[0] == '\0');  }
 
     ///////////////////////////////////////////////////////
 
@@ -22,7 +29,7 @@ public:
 
         if (IsPathEmpty(path))
         {
-            LogErr("input path is empty!");
+            LogErr(LOG, "input path is empty!");
             return false;
         }
 
@@ -30,8 +37,7 @@ public:
 
         if ((pFile = fopen(path, "r+")) == nullptr)       
         {
-            sprintf(g_String, "there is no texture by path: %s", path);
-            LogErr(g_String);
+            LogErr(LOG, "there is no texture by path: %s", path);
             return false;
         }
 

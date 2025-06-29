@@ -27,19 +27,37 @@
 #define BOLDWHITE   "\033[1m\033[37m"       /* Bold White */
 
 // define for standard log message (info about caller: file_name, func_name, code_line, message)
-#define LOG_INFO "%s: %s() (line: %d): %s",__FILE__, __func__, __LINE__
+#define LOG __FILE__, __func__, __LINE__
 
-extern char g_String[256];
+// global string container
+extern char g_String[512];
 
-bool InitLogger(void);
+// functions
+int InitLogger(void);
 void CloseLogger(void);
-
 void SetConsoleColor(const char* keyColor);
-void ResetConsoleColor();
 
-void PrintHelper(const char* levText, const char* text);
 void LogMsg(const char* format, ...);
-void LogDbg(const char* format, ...);
-void LogErr(const char* format, ...);
+
+void LogMsg(
+    const char* fileName,
+    const char* funcName,
+    const int codeLine,
+    const char* format,
+    ...);
+
+void LogDbg(
+    const char* fileName,
+    const char* funcName,
+    const int codeLine,
+    const char* format,
+    ...);
+
+void LogErr(
+    const char* fileName,
+    const char* funcName,
+    const int codeLine,
+    const char* format,
+    ...);
 
 #endif

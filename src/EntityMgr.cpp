@@ -15,7 +15,7 @@ EntityMgr g_EntityMgr;
 
 EntityMgr::EntityMgr()
 {
-    LogDbg("constructor");
+    LogDbg(LOG, "constructor");
 }
 
 ///////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ Entity* EntityMgr::GetEnttByName(const char* name)
 {
     if (!name || name[0] == '\0')
     {
-        LogErr("input entity name is empty");
+        LogErr(LOG, "input entity name is empty");
         return nullptr;
     }
 
@@ -103,8 +103,7 @@ Entity* EntityMgr::GetEnttByName(const char* name)
     }
     else
     {
-        sprintf(g_String, "There is no entity by name: %s", name);
-        LogErr(g_String);
+        LogErr(LOG, "There is no entity by name: %s", name);
         return nullptr;
     }
 }
@@ -134,7 +133,7 @@ void EntityMgr::ListAllEntts() const
     // for debug: print the list of all entities and its components
 
     printf("\n\n");
-    LogDbg(LOG_INFO, "components dump");
+    LogDbg(LOG, "components dump");
 
     for (int i = 0; const Entity* pEntt : m_Entities)
     {
@@ -156,7 +155,7 @@ void EntityMgr::SetPlayer(Entity* pEntt)
     }
     else
     {
-        LogErr("can't set a player: input ptr == nullptr");
+        LogErr(LOG, "can't set a player: input ptr == nullptr");
     }
 }
 

@@ -6,7 +6,11 @@
 
 int main(int argc, char* args[])
 {
-    InitLogger();
+    if (!InitLogger())
+    {
+        printf("main.cpp: can't initialize the logger\n");
+        return -1;
+    }
 
     Render render;
     Game game;

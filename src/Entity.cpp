@@ -25,7 +25,7 @@ Entity::Entity(
     if (IsStrEmpty(name))
     {
         // print an error msg and set default name
-        LogErr("input name for entity is empty!");
+        LogErr(LOG, "input name for entity is empty!");
         strcpy(m_Name, "invalid");
     }
     else

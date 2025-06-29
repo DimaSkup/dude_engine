@@ -1839,7 +1839,7 @@ namespace sol {
 #define COMPAT53_H_
 
 #include <stddef.h>
-#include <limits.h>
+#include <limits>
 #include <string.h>
 #if defined(__cplusplus) && !defined(COMPAT53_LUA_CPP)
 extern "C" {

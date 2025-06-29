@@ -24,17 +24,17 @@ bool Render::Initialize(
     const int wndHeight,      // window height for windowed mode
     const bool isFullscreen)
 {
-    LogMsg(LOG_INFO, "Start of the game initialization");
+    LogMsg(LOG, "Start of the game initialization");
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
-        LogErr(LOG_INFO, "Error initializing SDL");
+        LogErr(LOG, "Error initializing SDL");
         return false;        
     }
 
     if (TTF_Init() != 0)
     {
-        LogErr(LOG_INFO, "Error initializing SDL TTF");
+        LogErr(LOG, "Error initializing SDL TTF");
         return false;
     }
 
@@ -70,7 +70,7 @@ bool Render::Initialize(
 
     if (g_pWindow == nullptr)
     {
-        LogErr(LOG_INFO, "Error initializing window");
+        LogErr(LOG, "Error initializing window");
         return false;
     }
    
@@ -78,7 +78,7 @@ bool Render::Initialize(
     g_pRenderer = SDL_CreateRenderer(g_pWindow, -1, 0);
     if (g_pRenderer == nullptr)
     {
-        LogErr(LOG_INFO, "Error initializing renderer");
+        LogErr(LOG, "Error initializing renderer");
         return false;
     }
 
@@ -92,7 +92,7 @@ bool Render::Initialize(
     ms_WndWidth  = width;
     ms_WndHeight = height;
 
-    LogMsg("Render is initialized!");
+    LogMsg(LOG, "Render is initialized!");
     return true;
 }
 
@@ -146,7 +146,7 @@ void Render::DrawRectTextured(
     const SDL_RendererFlip& flip)
 {
     if (!pTexture)
-        LogErr(LOG_INFO, "input texture == nullptr");
+        LogErr(LOG, "input texture == nullptr");
 
     SDL_RenderCopyEx(g_pRenderer, pTexture, &srcRect, &dstRect, 0.0, NULL, flip); 
 }
