@@ -45,8 +45,7 @@ public:
         }
         else
         {
-            sprintf(g_String, "can't init collider because the entity (name: %s) doesn't have the Transform component", m_pOwner->m_Name);
-            LogErr(LOG_INFO, g_String);
+            LogErr(LOG, "can't init collider because the entity (name: %s) doesn't have the Transform component", m_pOwner->m_Name);
         }
     }
 

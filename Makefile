@@ -10,7 +10,7 @@
 #
 #  add -g flag after -std=c++14 to compile for debugging
 build:
-	g++ -w -std=c++14 -Wfatal-errors \
+	g++ -w -std=c++14 -g -Wfatal-errors \
 	./src/*.cpp \
 	-o game \
 	-I"./lib/lua" \

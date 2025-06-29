@@ -17,7 +17,7 @@ AssetMgr g_AssetMgr;
 AssetMgr::AssetMgr(EntityMgr* pEnttMgr) : m_pEnttMgr(pEnttMgr)
 {
     if (pEnttMgr == nullptr)
-        LogErr(LOG_INFO, "input ptr to the Entity Manager == nullptr");
+        LogErr(LOG, "input ptr to the Entity Manager == nullptr");
 }
 
 ///////////////////////////////////////////////////////////
@@ -47,21 +47,27 @@ void AssetMgr::AddTexture(const char* textureID, const char* filePath)
     // load a texture by filePath and set ID to textureID
 
     if (IsStrEmpty(textureID))
-        LogErr(LOG_INFO, "input texture ID is empty");
+    {
+        LogErr(LOG, "input texture ID is empty");
+        return;
+    }
 
     if (IsStrEmpty(filePath))
-        LogErr(LOG_INFO, "input path to texture is empty");
+    {
+        LogErr(LOG, "input path to texture is empty");
+        return;
+    }
 
     // try to load texture file
     SDL_Texture* pTex = TextureMgr::LoadTexture(filePath);
     if (!pTex)
     {
-        sprintf(g_String, "didn't manage to load texture: %s", filePath);
-        LogErr(g_String);
+        LogErr(LOG, "didn't manage to load texture: %s", filePath);
         return;
     }
 
     m_Textures.emplace(textureID, pTex);
+    LogMsg(LOG, "added texture: %s", textureID);
 }
 
 ///////////////////////////////////////////////////////////
@@ -75,31 +81,31 @@ void AssetMgr::AddFont(
 
     if (IsStrEmpty(fontID))
     {
-        LogErr(LOG_INFO, "input font ID is empty");
+        LogErr(LOG, "input font ID is empty");
         return;
     }
 
     if (IsStrEmpty(filePath))
     {
-        LogErr(LOG_INFO, "input file path is empty");
+        LogErr(LOG, "input file path is empty");
         return;
     }
 
     if (fontSize <= 0)
     {
-        LogErr(LOG_INFO, "input font size must be > 0");
+        LogErr(LOG, "input font size must be > 0");
         return;
     }
 
     TTF_Font* pFont = FontMgr::LoadFont(filePath, fontSize);
     if (!pFont)
     {
-        sprintf(g_String, "can't to load font from file: %s", filePath);
-        LogErr(LOG_INFO, g_String);
+        LogErr(LOG, "can't to load font from file: %s", filePath);
         return;
     }
 
     m_Fonts.emplace(fontID, pFont);
+    LogMsg(LOG, "Added font: %s", fontID);
 }
 
 ///////////////////////////////////////////////////////////
@@ -110,7 +116,7 @@ SDL_Texture* AssetMgr::GetTexture(const char* textureID)
 
     if (IsStrEmpty(textureID))
     {
-        LogErr(LOG_INFO, "input texture ID is empty");
+        LogErr(LOG, "input texture ID is empty");
         return nullptr;
     }
 
@@ -127,7 +133,7 @@ TTF_Font* AssetMgr::GetFont(const char* fontID)
 
     if (IsStrEmpty(fontID))
     {
-        LogErr(LOG_INFO, "input font ID is empty");
+        LogErr(LOG, "input font ID is empty");
         return nullptr;
     }
 
@@ -144,7 +150,7 @@ SDL_Point AssetMgr::GetTextureSize(SDL_Texture* pTexture)
     SDL_Point size{0,0};
 
     if (!pTexture)
-        LogErr("input ptr to texture == nullptr");
+        LogErr(LOG, "input ptr to texture == nullptr");
     else
         SDL_QueryTexture(pTexture, NULL, NULL, &size.x, &size.y);
 

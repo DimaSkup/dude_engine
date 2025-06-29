@@ -13,7 +13,7 @@ SDL_Texture* TextureMgr::LoadTexture(const char* fileName)
 {
     if (!FileSys::Exists(fileName))
     {
-        LogErr(LOG_INFO, "input path to texture is empty");
+        LogErr(LOG, "input path to texture is empty");
         return nullptr;
     }
 

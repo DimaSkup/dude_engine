@@ -30,7 +30,7 @@ public:
         // a constructor for static (not animated sprites)
 
         if (IsStrEmpty(assetTextureID))
-            LogErr(LOG_INFO, "input asset texture ID is empty");
+            LogErr(LOG, "input asset texture ID is empty");
 
         SetTexture(assetTextureID);
     }
@@ -52,7 +52,7 @@ public:
         // a constructor for animated sprites
 
         if (IsStrEmpty(assetTextureID))
-            LogErr("input asset texture ID is empty");
+            LogErr(LOG, "input asset texture ID is empty");
 
         if (hasDirections)
         {
@@ -78,7 +78,7 @@ public:
             const char* animKey = "SingleAnimation";
             const auto& res = m_Animations.emplace(animKey, singleAnimation);
             if (!res.second)
-                LogErr("didn't manage to add a single animation into the map of animations by key: %s", animKey);
+                LogErr(LOG, "didn't manage to add a single animation into the map of animations by key: %s", animKey);
 
             m_AnimationIdx = 0;
             m_CurrAnimationName = animKey;
@@ -110,11 +110,17 @@ public:
     {
         if (IsStrEmpty(assetTextureID))
         {
-            LogErr(LOG_INFO, "input asset texture ID is empty");
+            LogErr(LOG, "input asset texture ID is empty");
             return;
         }
 
         m_pTexture = g_AssetMgr.GetTexture(assetTextureID); 
+
+        // check if we got a valid texture
+        if (m_pTexture == nullptr)
+        {
+            LogErr(LOG, "there is no texture is asset mgr by ID: %s", assetTextureID);
+        }
     }
 
     ///////////////////////////////////////////////////////
