@@ -18,6 +18,10 @@
 #include "../Animation.h"
 #include "Transform.h"
 #include <SDL2/SDL.h>
+#include <stdexcept>
+
+
+///////////////////////////////////////////////////////////
 
 class Sprite : public IComponent 
 {
@@ -57,51 +61,103 @@ public:
         if (hasDirections)
         {
             // separate animation data container for each direction
-            Animation down(0, numFrames, animationSpeed);
+            Animation down (0, numFrames, animationSpeed);
             Animation right(1, numFrames, animationSpeed);
-            Animation left(2, numFrames, animationSpeed);
-            Animation up(3, numFrames, animationSpeed);
+            Animation left (2, numFrames, animationSpeed);
+            Animation up   (3, numFrames, animationSpeed);
 
+#if 0
             // add animations into map to be able to switch btw them
             m_Animations.emplace("DownAnimation", down);
             m_Animations.emplace("RightAnimation", right);
             m_Animations.emplace("LeftAnimation", left);
             m_Animations.emplace("UpAnimation", up);
+#else
+            // add animations into map to be able to switch btw them
+            m_Animations.insert({ ANIMATION_TYPE_DOWN,  down  });
+            m_Animations.insert({ ANIMATION_TYPE_RIGHT, right });
+            m_Animations.insert({ ANIMATION_TYPE_LEFT,  left  });
+            m_Animations.insert({ ANIMATION_TYPE_UP,    up    });
+
+
+#endif
             
             m_AnimationIdx = 0;
-            m_CurrAnimationName = "DownAnimation";
+            m_CurrAnimationType = ANIMATION_TYPE_RIGHT;
         }
         else
         {
             Animation singleAnimation(0, numFrames, animationSpeed);
 
-            const char* animKey = "SingleAnimation";
-            const auto& res = m_Animations.emplace(animKey, singleAnimation);
+            //const char* animKey = "SingleAnimation";
+
+            const auto& res = m_Animations.insert({ ANIMATION_TYPE_SINGLE, singleAnimation });
             if (!res.second)
-                LogErr(LOG, "didn't manage to add a single animation into the map of animations by key: %s", animKey);
+                LogErr(LOG, "didn't manage to add a single animation into the map of animations");
 
             m_AnimationIdx = 0;
-            m_CurrAnimationName = animKey;
+            m_CurrAnimationType = ANIMATION_TYPE_SINGLE;
         }
 
         SetTexture(assetTextureID);
-        Play(m_CurrAnimationName);
+        Play(m_CurrAnimationType);
     }
 
     ///////////////////////////////////////////////////////
 
-    virtual ~Sprite() {}
+    virtual ~Sprite() 
+    {
+        m_Animations.clear();
+    }
     
     ///////////////////////////////////////////////////////
 
-    void Play(const std::string& animationName)
+    // ----------------------------------------------------
+    // Desc:  switch to the animation of input type 
+    //        (if we have any data for it)
+    // Args:  - type: animation type to switch to
+    // ----------------------------------------------------
+    void Play(const eAnimationType type)
     {
-        const Animation& anim = m_Animations[animationName];
+#if 1
+        if (m_Animations.empty())
+        {
+            LogErr(LOG, "std::map of animations is empty!");
+            return;
+        }
 
-        m_NumFrames         = anim.m_NumFrames;
-        m_AnimationIdx      = anim.m_Idx; 
-        m_AnimationSpeed    = anim.m_AnimationSpeed;
-        m_CurrAnimationName = animationName; 
+        const auto& it = m_Animations.find(type);
+
+        if (it != m_Animations.end())
+        {
+            const Animation& anim = it->second;
+
+            m_NumFrames         = anim.m_NumFrames;
+            m_AnimationIdx      = anim.m_Idx; 
+            m_AnimationSpeed    = anim.m_AnimationSpeed;
+            m_CurrAnimationType = type; 
+        }
+        else
+        {
+            LogErr(LOG, "there is no animation by type: %d", (int)type);
+        }
+#else
+        try
+        {
+            const Animation& anim = m_Animations.at(type);
+
+            m_NumFrames         = anim.m_NumFrames;
+            m_AnimationIdx      = anim.m_Idx; 
+            m_AnimationSpeed    = anim.m_AnimationSpeed;
+            m_CurrAnimationType = type; 
+
+        }
+        catch (std::out_of_range& e)
+        {
+            LogErr(LOG, e.what());
+            LogErr(LOG, "there is no animation by type: %d", (int)type);
+        }
+#endif
     }
 
     ///////////////////////////////////////////////////////
@@ -192,9 +248,11 @@ private:
     bool            m_IsAnimated     = false;     
     bool            m_IsFixed        = false;   // is always fixed at the same screen position
 
-    std::string     m_CurrAnimationName;
+    eAnimationType  m_CurrAnimationType = ANIMATION_TYPE_SINGLE;
+    //std::string     m_CurrAnimationName;
 
-    std::map<std::string, Animation>    m_Animations;  // key => animation_info
+    std::map<eAnimationType, Animation> m_Animations;
+//    std::map<std::string, Animation>    m_Animations;  // key => animation_info
 };
 
 #endif

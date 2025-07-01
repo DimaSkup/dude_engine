@@ -12,6 +12,7 @@
 #include "Constants.h"
 #include "EntityMgr.h"
 #include "IComponent.h"
+#include "Types.h"
 #include <vector>
 #include <map>
 #include <typeinfo>
@@ -22,14 +23,25 @@ class EntityMgr;
 class Entity
 {
 public:
-    Entity(EntityMgr& mgr);
-    Entity(EntityMgr& mgr, const char* name, const eLayerType layer);
+    //Entity(EntityMgr& mgr);
+    Entity(
+        EntityMgr& mgr, 
+        const char* name, 
+        const eLayerType layer,
+        const EntityID id);
 
     void Update(const float deltaTime);
     void Render();
     void Destroy();
 
-    inline bool IsActive() const { return m_IsActive; }
+    inline bool     IsActive() const { return m_IsActive; }
+    inline EntityID GetID()    const { return m_ID; }
+
+    //-----------------------------------------------------
+    // Desc:   get a name of the component
+    // Ret:    const ptr to array of name's characters
+    //-----------------------------------------------------
+    const char* GetName() const { return m_Name; }
 
     ///////////////////////////////////////////////////////
 
@@ -50,7 +62,10 @@ public:
     template <typename T>
     T* GetComponent() 
     {
-        return static_cast<T*>(m_ComponentTypeMap[&typeid(T)]);
+        if (HasComponent<T>())
+            return static_cast<T*>(m_ComponentTypeMap[&typeid(T)]);
+        else
+            return nullptr;
     }
 
     ///////////////////////////////////////////////////////
@@ -58,6 +73,7 @@ public:
     template <typename T>
     bool HasComponent() const 
     {
+
         return m_ComponentTypeMap.find(&typeid(T)) != m_ComponentTypeMap.end();
     }
 
@@ -66,6 +82,7 @@ public:
     void ListAllComponents() const;
 
 public:
+    EntityID                 m_ID = 0;
     eLayerType               m_Layer;
     char                     m_Name[32]{'\0'};
     bool                     m_IsActive = false;

@@ -37,16 +37,20 @@ public:
     void           SetPlayer(Entity* pEntt);
     inline Entity* GetPlayer() const { return m_pPlayer; }
 
+    Entity* GetEnttByID(const EntityID id);
     Entity* GetEnttByName(const char* name);
 
     // collision tests
     eCollisionType CheckCollisions() const;
     eColliderTag   CheckEnttCollisions(Entity* pEntt) const;
 
+    EntityID m_LastEnttID = 0;
+
 private:
     Entity*              m_pPlayer = nullptr;
     std::vector<Entity*> m_Entities;
 
+    std::map<EntityID, Entity*>                m_EnttsByIDs;
     std::map<std::string, Entity*>             m_EnttsByNames;
     std::map<eLayerType, std::vector<Entity*>> m_EnttsByLayers;
 };
