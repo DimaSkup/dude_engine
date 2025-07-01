@@ -6,7 +6,12 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-using uint = unsigned int;
+#include <stdint.h>
+
+// typedefs
+using EntityID = uint32_t;
+using uint     = unsigned int;
+
 
 enum eColliderTag
 {
@@ -38,6 +43,16 @@ enum eLayerType
     LAYER_UI            = 5,
     LAYER_OBSTACLE      = 6,
     NUM_LAYERS,
+};
+
+// is used for sprites animations
+enum eAnimationType
+{
+    ANIMATION_TYPE_DOWN = 0,
+    ANIMATION_TYPE_UP,
+    ANIMATION_TYPE_RIGHT,
+    ANIMATION_TYPE_LEFT,
+    ANIMATION_TYPE_SINGLE,
 };
 
 

@@ -155,6 +155,13 @@ void Game::Update()
 void Game::HandleCameraMovement()
 {
     Entity* pPlayer = g_EntityMgr.GetPlayer();
+
+    if (!pPlayer)
+    {
+        LogErr(LOG, "ptr to player == nullptr");
+        exit(-1);
+    }
+
     Transform* pPlayerTransform = pPlayer->GetComponent<Transform>();
 
     ms_Camera.x = pPlayerTransform->m_Position.x - HALF_WND_WIDTH;
@@ -195,6 +202,10 @@ void Game::CheckCollisions()
 
     switch (cType)
     {
+        case NO_COLLISION:
+        {
+            return;
+        }
         case PLAYER_ENEMY_COLLISION:
         case PLAYER_PROJECTILE_COLLISION:
         {
@@ -311,9 +322,9 @@ void Game::Destroy()
 
 //---------------------------------------------------------
 // Desc:   load assets from lua config file
-// Args:   - levelData: a table of all the level's data
+// Args:   - assets:  data for assets initialization
 //---------------------------------------------------------
-int LoadAssets(sol::table levelData)
+void LoadAssets(sol::table assets)
 {
 #if 0
     // start loading new assets into the Asset Manager list
@@ -325,8 +336,6 @@ int LoadAssets(sol::table levelData)
     g_AssetMgr.AddTexture("projectile-texture",   "assets/images/bullet-enemy.png");
     g_AssetMgr.AddTexture("terrain-texture-day", "assets/tilemaps/jungle.png");
 #else
-
-    sol::table assets = levelData["assets"];
 
     // load in assets
     int assetIdx = 0;
@@ -346,9 +355,9 @@ int LoadAssets(sol::table levelData)
         else
         {
             sol::table asset = assets[assetIdx];
-            assetType = asset["type"];
-            assetId = asset["id"];
-            assetPath = asset["file"];
+            assetType        = asset["type"];
+            assetId          = asset["id"];
+            assetPath        = asset["file"];
 
             // we want to load some texture
             if (assetType == "texture")
@@ -367,8 +376,344 @@ int LoadAssets(sol::table levelData)
         assetIdx++;
     }
 #endif
+}
 
-    return 0;
+//---------------------------------------------------------
+// Desc:   load a map from lua config file
+// Args:   - levelMap: data for map initialization
+//---------------------------------------------------------
+void LoadMap(sol::table levelMap)
+{
+    LogMsg(LOG, "start loading of map");
+
+#if 0
+
+    // load tilemap and create tile entities
+    constexpr int tileScale = 2;
+    constexpr int tileSize = 32;
+    s_pMap = new Map("terrain-texture-day", tileScale, tileSize);
+
+    constexpr int tileMapWidth = 25;
+    constexpr int tileMapHeight = 20;
+    s_pMap->LoadMap("assets/tilemaps/jungle.map", tileMapWidth, tileMapHeight);
+
+    // compute full width and height of the level in pixels
+    g_GameStates.levelMapWidth  = tileScale * tileSize * tileMapWidth;
+    g_GameStates.levelMapHeight = tileScale * tileSize * tileMapHeight;
+
+    LogMsg(LOG, "map size: %d %d", g_GameStates.levelMapWidth, g_GameStates.levelMapHeight);
+
+#else
+
+    std::string mapTextureId = levelMap["textureAssetId"];
+    std::string mapPath      = levelMap["file"];
+
+    const int tileScale     = (int)levelMap["scale"];
+    const int tileSize      = (int)levelMap["tileSize"];
+    const int tileMapWidth  = (int)levelMap["mapSizeX"];
+    const int tileMapHeight = (int)levelMap["mapSizeY"];
+
+    printf("map tex id:               %s\n", mapTextureId.c_str());
+    printf("map file:                 %s\n", mapPath.c_str());
+    printf("map tile scale:           %d\n", tileScale);
+    printf("map tile size:            %d\n", tileSize);
+    printf("map size x (tiles count): %d\n", tileMapWidth);
+    printf("map size y (tiles count): %d\n", tileMapHeight);
+
+    s_pMap = new Map(mapTextureId.c_str(), tileScale, tileSize);
+    s_pMap->LoadMap(mapPath.c_str(), tileMapWidth, tileMapHeight);
+
+    // compute full width and height of the level in pixels
+    g_GameStates.levelMapWidth  = tileScale * tileSize * tileMapWidth;
+    g_GameStates.levelMapHeight = tileScale * tileSize * tileMapHeight;
+
+    LogMsg(LOG, "map is loaded");
+
+#endif
+}
+//---------------------------------------------------------
+// Desc:   add to input entity a transform component by input data
+// Args:   - entt: entity to modify
+//         - tr:   transformation data for transform component
+//---------------------------------------------------------
+void AddTransformComponent(Entity& entt, sol::table tr)
+{
+    const int posX   = (int)tr["position"]["x"];
+    const int posY   = (int)tr["position"]["y"];
+    const int velX   = (int)tr["velocity"]["x"];
+    const int velY   = (int)tr["velocity"]["y"];
+
+    const int width  = (int)tr["width"];
+    const int height = (int)tr["height"];
+    const int scale  = (int)tr["scale"];
+    // const int rotation = (int)tr["rotation"];
+    
+    printf("\t\tposX:     %d\n", posX);
+    printf("\t\tposY:     %d\n", posY);
+    printf("\t\tvelX:     %d\n", velX);
+    printf("\t\tvelY:     %d\n", velY);
+    printf("\t\twidth:    %d\n", width);
+    printf("\t\theight:   %d\n", height);
+    printf("\t\tscale:    %d\n", scale);
+    //printf("\t\trotation: %d\n", rotation);
+
+    entt.AddComponent<Transform>(
+        posX,
+        posY,
+        velX,
+        velY,
+        width,
+        height,
+        scale);
+    
+    LogDbg(LOG, "component \"transform\" is added");
+
+}
+
+
+//---------------------------------------------------------
+// Desc:   load entities from lua config file
+// Args:   - entts: data container for entities initialization
+//---------------------------------------------------------
+void LoadEntities(const sol::table entts)
+{
+#if 0 
+
+    // add and setup the "chopper" entity
+    Entity& enttChopper = g_EntityMgr.AddEntity("chopper", LAYER_PLAYER);
+    enttChopper.AddComponent<Transform>(240, 106, 0, 0, 32, 32, 1);
+    enttChopper.AddComponent<Sprite>("chopper-texture", 2, 90, true, false);
+    enttChopper.AddComponent<KeyboardControl>("up", "right", "down", "left", "space");
+    enttChopper.AddComponent<Collider>(eColliderTag::PLAYER, 240, 106, 32, 32);
+    g_EntityMgr.SetPlayer(&enttChopper);
+
+#else
+
+    int         enttIdx = 0;
+    eLayerType  enttLayerType;
+    std::string enttName(32, ' ');
+    std::string assetId(32, ' ');
+
+    // load in all the entities
+    while (true)
+    {
+        sol::optional<sol::table> enttIdxNode = entts[enttIdx];
+
+        // we reached the end of table or there is no data at all
+        if (enttIdxNode == sol::nullopt)
+        {
+            break;
+        }
+        else
+        {
+            const sol::table enttData = entts[enttIdx];
+            enttName = enttData["name"];
+            enttLayerType = eLayerType(enttData["layer"]);
+
+            SetConsoleColor(YELLOW);
+            printf("entt name: %s\n", enttName.c_str());
+            printf("entt layer: %d\n", (int)enttData["layer"]);
+            SetConsoleColor(RESET);
+
+            // create an entity
+            Entity& entt = g_EntityMgr.AddEntity(enttName.c_str(), enttLayerType);
+            
+            // table of components which we will bind to the entity
+            const sol::table components = enttData["components"];
+
+            // since all the other components may depend on transform
+            // component we add it to the entity first of all
+            AddTransformComponent(entt, components["transform"]);
+
+            // go through the table of components and add 
+            // components to the entity
+            for (const auto& keyToValue : components)
+            {
+                const char* componentName = keyToValue.first.as<const char*>();
+                const sol::object componentData = keyToValue.second;
+
+                SetConsoleColor(CYAN);
+                printf("\tadd component: %s\n", componentName);
+                SetConsoleColor(RESET);
+
+                   // add a sprite component to the entity
+                if (strcmp(componentName, "sprite") == 0)
+                {
+                    sol::table sprite = componentData;
+ 
+                    assetId = sprite["textureAssetId"];
+                    const bool animated = (bool)sprite["animated"];
+
+                    // if we want to load in data for animated sprite
+                    if (animated)
+                    {   const int frameCount     = (int)sprite["frameCount"];
+                        const int animationSpeed = (int)sprite["animationSpeed"];
+                        const bool hasDirections = (bool)sprite["hasDirections"];
+                        const bool fixed         = (bool)sprite["fixed"];
+
+                        printf("\t\tassetId:        %s\n", assetId.c_str());
+                        printf("\t\tanimated:       %d\n", animated);
+                        printf("\t\tframeCount:     %d\n", frameCount);
+                        printf("\t\tanimationSpeed: %d\n", animationSpeed);
+                        printf("\t\thasDirections:  %d\n", hasDirections);
+                        printf("\t\tfixed:          %d\n", fixed);
+
+                        entt.AddComponent<Sprite>(
+                            assetId.c_str(),
+                            frameCount,
+                            animationSpeed,
+                            hasDirections,
+                            fixed);
+                    }
+
+                    // we want to load in a static sprite (no animation)
+                    else
+                    {
+                        printf("\t\tassetId:  %s\n", assetId.c_str());
+                        printf("\t\tanimated: %d\n", animated);
+
+                        entt.AddComponent<Sprite>(assetId.c_str());
+                    }
+
+                    LogDbg(LOG, "component is added: sprite");
+                    continue;
+                }
+
+                // add a collider component to the entity
+                if (strcmp(componentName, "collider") == 0)
+                {
+                    sol::table collider = componentData;
+                    sol::table tr = components["transform"];
+                    
+                    // TODO:
+                    std::string colliderTag = collider["tag"];
+                    eColliderTag tag;
+
+                    if (colliderTag == "PLAYER")
+                        tag = eColliderTag::PLAYER;
+
+                    const int colliderBoxPosX = tr["position"]["x"];
+                    const int colliderBoxPosY = tr["position"]["y"];
+                    const int colliderBoxWidth = tr["width"];
+                    const int colliderBoxHeight = tr["height"];
+
+                    // print data into console for debug
+                    printf("\t\tcollider tag: %s\n", colliderTag.c_str());
+                    printf("\t\tposX:         %d\n", colliderBoxPosX);
+                    printf("\t\tposY:         %d\n", colliderBoxPosY);
+                    printf("\t\twidth:        %d\n", colliderBoxWidth);
+                    printf("\t\theight:       %d\n", colliderBoxHeight);
+
+                    entt.AddComponent<Collider>(
+                        tag, 
+                        colliderBoxPosX, 
+                        colliderBoxPosY,
+                        colliderBoxWidth,
+                        colliderBoxHeight);
+                    
+                    LogDbg(LOG, "component is added: collider");
+                    continue;
+                }
+
+                // add an input control (keyboard/mouse) to this entity
+                if (strcmp(componentName, "input") == 0)
+                {
+                    const sol::table input     = componentData;
+                    const sol::table keyboard  = input["keyboard"];
+
+                    const std::string upKey    = keyboard["up"];
+                    const std::string leftKey  = keyboard["left"];
+                    const std::string downKey  = keyboard["down"];
+                    const std::string rightKey = keyboard["right"];
+                    const std::string shootKey = keyboard["shoot"];
+
+                    printf("\t\tup key:    %s\n", upKey.c_str());
+                    printf("\t\tleft key:  %s\n", leftKey.c_str());
+                    printf("\t\tdown key:  %s\n", downKey.c_str());
+                    printf("\t\tright key: %s\n", rightKey.c_str());
+                    printf("\t\tshoot key: %s\n", shootKey.c_str());
+
+                   
+                    entt.AddComponent<KeyboardControl>(
+                        upKey.c_str(),
+                        rightKey.c_str(),
+                        downKey.c_str(),
+                        leftKey.c_str(),
+                        shootKey.c_str());
+
+                    LogDbg(LOG, "component is added: input (keyboard)");
+                    continue;
+                }
+
+                if (strcmp(componentName, "projectileEmitter") == 0)
+                {
+                    LogErr(LOG, "got here");
+                    const sol::table emmiter = componentData;
+                    const sol::table tr = components["transform"];
+
+                    assetId = emmiter["textureAssetId"];
+                    const int  speed    = emmiter["speed"];
+                    const int  angleDeg = emmiter["angle"];
+                    const int  range    = emmiter["range"];
+                    const bool loop     = emmiter["shouldLoop"];
+                    const int  width    = emmiter["width"];
+                    const int  height   = emmiter["height"];
+                
+                    printf("\t\tspeed:      %d\n", speed);
+                    printf("\t\tangleDeg:   %d\n", angleDeg);
+                    printf("\t\trange:      %d\n", range);
+
+                    printf("\t\tloop(bool): %d\n", loop);
+                    printf("\t\twidth:      %d\n", width);
+                    printf("\t\theight:     %d\n", height);
+
+                    // add a separate projectile emmiter entity
+                    char projectileName[64]{0};
+                    strcat(projectileName, enttName.c_str());
+                    strcat(projectileName, "_projectile");
+
+                    LogDbg(LOG, "add projectile: %s", projectileName);
+#if 1
+                    Entity& projectile = g_EntityMgr.AddEntity(projectileName, LAYER_PROJECTILE);
+
+                    AddTransformComponent(projectile, components["transform"]);
+
+                    projectile.GetComponent<Transform>()->SetWidth(4);
+                    projectile.GetComponent<Transform>()->SetHeight(4);
+                    projectile.AddComponent<Sprite>(assetId.c_str());
+
+                    projectile.AddComponent<Collider>(
+                        eColliderTag::PROJECTILE, 
+                        tr["position"]["x"],
+                        tr["position"]["y"],
+                        4, 4); 
+                    
+                    projectile.AddComponent<ProjectileEmmiter>(
+                        speed,
+                        angleDeg,
+                        range,
+                        loop);
+#endif
+                    LogDbg(LOG, "component is added: projectile emiter");
+                    continue;
+                }
+            }
+        }
+
+        enttIdx++;
+    }
+
+    // setup a pointer to the player's entity
+    Entity* pEnttPlayer = g_EntityMgr.GetEnttByName("player");
+
+    if (!pEnttPlayer)
+    {
+        LogErr(LOG, "there is no entity by name: player");
+        exit(-1);
+    }
+
+    g_EntityMgr.SetPlayer(pEnttPlayer);
+#endif
 }
 
 //---------------------------------------------------------
@@ -400,7 +745,9 @@ void LoadLevelFromLuaScript(const int levelNumber)
     lua.script_file(luaScriptPath);
 
     // load stuff from lua script
-    LoadAssets(lua[levelName]);
+    LoadAssets(lua[levelName]["assets"]);
+    LoadMap(lua[levelName]["map"]);
+    LoadEntities(lua[levelName]["entities"]);
 }
 
 ///////////////////////////////////////////////////////////
@@ -414,21 +761,7 @@ void Game::LoadLevel(const int levelNumber)
     //constexpr int fontSize = 14;
     //g_AssetMgr.AddFont("charriot-font", "assets/fonts/charriot.ttf", fontSize);
 
-    // load tilemap and create tile entities
-    constexpr int tileScale = 2;
-    constexpr int tileSize = 32;
-    s_pMap = new Map("terrain-texture-day", tileScale, tileSize);
-
-    constexpr int tileMapWidth = 25;
-    constexpr int tileMapHeight = 20;
-    s_pMap->LoadMap("assets/tilemaps/jungle.map", tileMapWidth, tileMapHeight);
-
-    // compute full width and height of the level in pixels
-    g_GameStates.levelMapWidth  = tileScale * tileSize * tileMapWidth;
-    g_GameStates.levelMapHeight = tileScale * tileSize * tileMapHeight;
-
-    LogMsg(LOG, "map size: %d %d", g_GameStates.levelMapWidth, g_GameStates.levelMapHeight);
-
+#if 0
     // add and setup the "tank" entity
     Entity& enttTank = g_EntityMgr.AddEntity("tank", LAYER_ENEMY);
     enttTank.AddComponent<Transform>(150, 495, 5, 0, 32, 32, 1);
@@ -448,16 +781,6 @@ void Game::LoadLevel(const int levelNumber)
     heliport.AddComponent<Sprite>("heliport-texture");
     heliport.AddComponent<Collider>(eColliderTag::LEVEL_COMPLETE, 470, 420, 32, 32);
 
-    // add and setup the "chopper" entity
-    Entity& enttChopper = g_EntityMgr.AddEntity("chopper", LAYER_PLAYER);
-    enttChopper.AddComponent<Transform>(240, 106, 0, 0, 32, 32, 1);
-    constexpr bool chopperHasDirections = true;
-    constexpr bool chopperIsFixed       = false;
-    enttChopper.AddComponent<Sprite>("chopper-texture", 2, 90, true, false);
-    enttChopper.AddComponent<KeyboardControl>("up", "right", "down", "left", "space");
-    enttChopper.AddComponent<Collider>(eColliderTag::PLAYER, 240, 106, 32, 32);
-    g_EntityMgr.SetPlayer(&enttChopper);
-
     // add and setup the "radar" entity
     Entity& enttRadar = g_EntityMgr.AddEntity("radar", LAYER_UI);
     const int radarOffset = 15;
@@ -467,6 +790,7 @@ void Game::LoadLevel(const int levelNumber)
     constexpr bool radarIsFixed       = true;
     enttRadar.AddComponent<Sprite>("radar-texture", 8, 150, radarHasDirections, radarIsFixed);
 
+#endif
     // create text entities
     Entity& labelLevelName = g_EntityMgr.AddEntity("LabelLevelName", LAYER_UI);
     labelLevelName.AddComponent<TextLabel>(10, 10, "First level...", "charriot-font", WHITE_COLOR); 
@@ -476,7 +800,6 @@ void Game::LoadLevel(const int levelNumber)
 
     Entity& deltaTimeText = g_EntityMgr.AddEntity("delta time", LAYER_UI);
     deltaTimeText.AddComponent<TextLabel>(10, 50, "Delta time: 0ms", "charriot-font", WHITE_COLOR);
-
     LogMsg(LOG, "level %d is loaded", levelNumber);
 }
 

@@ -22,6 +22,8 @@ struct GameStates
     uint levelMapWidth  = 0;      // width of the current level in pixels
     uint levelMapHeight = 0;      // height of the current level in pixels
 
+    int playerSpeed = 400;
+
     void SetWndDimensions(const uint wndWidth, const uint wndHeight)
     {
 

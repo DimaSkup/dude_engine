@@ -4,23 +4,27 @@
 #include <stdio.h>
 #include <string.h>
 
+#if 0
 Entity::Entity(EntityMgr& mgr) : 
     m_EnttMgr(mgr),
     m_IsActive(true)
 { 
     strcpy(m_Name, "no_name");
 }
+#endif
 
 ///////////////////////////////////////////////////////////
 
 Entity::Entity(
     EntityMgr& mgr, 
     const char* name, 
-    const eLayerType layer) 
+    const eLayerType layer,
+    const EntityID id) 
     :
     m_EnttMgr(mgr),
     m_IsActive(true),
-    m_Layer(layer)
+    m_Layer(layer),
+    m_ID(id)
 { 
     if (IsStrEmpty(name))
     {
@@ -32,7 +36,6 @@ Entity::Entity(
     {
         strncpy(m_Name, name, 32);
     }
-
 }
 
 /////////////////////////////////////////////////
