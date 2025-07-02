@@ -65,6 +65,11 @@ void Entity::Render()
 void Entity::Destroy()
 {
     m_IsActive = false;
+
+    for (IComponent* pComponent : m_Components)
+    {
+        delete pComponent;
+    }
 }
 
 ///////////////////////////////////////////////////////////

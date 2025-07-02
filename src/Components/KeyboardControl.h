@@ -58,7 +58,6 @@ public:
         // return: a flag to define if we pressed any key for moving
         
         const uint8_t* keys = SDL_GetKeyboardState(NULL);
-        constexpr float speed = 400;
         bool isMoving = false;
 
         glm::vec2 velocity = { 0, 0 };
