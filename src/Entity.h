@@ -34,14 +34,10 @@ public:
     void Render();
     void Destroy();
 
-    inline bool     IsActive() const { return m_IsActive; }
-    inline EntityID GetID()    const { return m_ID; }
-
-    //-----------------------------------------------------
-    // Desc:   get a name of the component
-    // Ret:    const ptr to array of name's characters
-    //-----------------------------------------------------
-    const char* GetName() const { return m_Name; }
+    inline bool        IsActive()  const { return m_IsActive; }
+    inline EntityID    GetID()     const { return m_ID; }
+    inline const char* GetName()   const { return m_Name; }
+    inline eLayerType  GetLayer()  const { return m_Layer; }
 
     ///////////////////////////////////////////////////////
 

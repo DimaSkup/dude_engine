@@ -46,6 +46,7 @@ public:
 private:
     bool             m_Running = true;
     bool             m_ShowAABB = false;
+    bool             m_ShowHelpScreen = true;
     uint32_t         m_PrevTicks = 0;
     uint32_t         m_FpsCounter = 0;
     uint32_t         m_FramesDrawn = 0;

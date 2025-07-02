@@ -66,21 +66,11 @@ public:
             Animation left (2, numFrames, animationSpeed);
             Animation up   (3, numFrames, animationSpeed);
 
-#if 0
-            // add animations into map to be able to switch btw them
-            m_Animations.emplace("DownAnimation", down);
-            m_Animations.emplace("RightAnimation", right);
-            m_Animations.emplace("LeftAnimation", left);
-            m_Animations.emplace("UpAnimation", up);
-#else
             // add animations into map to be able to switch btw them
             m_Animations.insert({ ANIMATION_TYPE_DOWN,  down  });
             m_Animations.insert({ ANIMATION_TYPE_RIGHT, right });
             m_Animations.insert({ ANIMATION_TYPE_LEFT,  left  });
             m_Animations.insert({ ANIMATION_TYPE_UP,    up    });
-
-
-#endif
             
             m_AnimationIdx = 0;
             m_CurrAnimationType = ANIMATION_TYPE_RIGHT;
@@ -108,9 +98,17 @@ public:
     virtual ~Sprite() 
     {
         m_Animations.clear();
+        m_pTransform = nullptr;
+        m_pTexture = nullptr;
     }
     
-    ///////////////////////////////////////////////////////
+    //-----------------------------------------------------
+    // Desc:  get the current animation type
+    //        (using example: to define the player's direction)
+    // Ret:   animation type value
+    //-----------------------------------------------------
+    inline eAnimationType GetCurrAnimationType() const
+    {    return m_CurrAnimationType;    }
 
     // ----------------------------------------------------
     // Desc:  switch to the animation of input type 

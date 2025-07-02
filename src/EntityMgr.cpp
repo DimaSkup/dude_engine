@@ -6,6 +6,7 @@
 #include "Log.h"
 #include "Components/Collider.h"
 #include "Components/Sprite.h"
+#include "Components/ProjectileEmmiter.h"
 #include "EventMgr.h"
 #include <stdio.h>
 
@@ -57,6 +58,65 @@ void EntityMgr::Update(const float deltaTime)
             }
             case EVENT_TYPE_PLAYER_SHOOT:
             {
+                Entity&          player     = *GetPlayer();
+                const Transform* pTransform = player.GetComponent<Transform>();
+                const Sprite*    pSprite    = player.GetComponent<Sprite>();
+
+                // compute the projectile's init position, velocity, direction
+                const glm::vec2 playerPos = pTransform->GetPosition();
+
+                // define an angle of projectile emitting based on player's direction
+                int angleDeg = 0;
+
+                switch (pSprite->GetCurrAnimationType())
+                {
+                    case ANIMATION_TYPE_DOWN:  angleDeg = 90;  break;
+                    case ANIMATION_TYPE_UP:    angleDeg = 270; break;
+                    case ANIMATION_TYPE_RIGHT: angleDeg = 0;   break;
+                    case ANIMATION_TYPE_LEFT:  angleDeg = 180; break;
+                }
+                const EntityID projectileID = m_LastEnttID + 1;
+                char name[64]{0};
+                sprintf(name, "player_projectile_%d", projectileID);
+
+                Entity& entt = AddEntity(name, LAYER_PROJECTILE);
+
+                const     int posX   = (int)playerPos.x;
+                const     int posY   = (int)playerPos.y;
+                constexpr int velX   = 0;
+                constexpr int velY   = 0;
+                constexpr int width  = 4;
+                constexpr int height = 4;
+                constexpr int scale  = 1;
+
+                entt.AddComponent<Transform>(
+                    posX,
+                    posY,
+                    velX,
+                    velY,
+                    width,
+                    height,
+                    scale);
+               
+                entt.AddComponent<Sprite>("projectile-texture");
+
+                entt.AddComponent<Collider>(
+                    eColliderTag::FRIENDLY_PROJECTILE,
+                    posX,
+                    posY,
+                    width,
+                    height);
+                    
+                constexpr int speed = 600;
+                constexpr int range = 300;
+                constexpr bool loop = false;
+
+                entt.AddComponent<ProjectileEmmiter>(
+                    speed,
+                    angleDeg,
+                    range,
+                    loop); 
+
                 break;
             }
             case EVENT_TYPE_PLAYER_MOVE:
@@ -89,11 +149,62 @@ void EntityMgr::Update(const float deltaTime)
 void EntityMgr::DestroyInactiveEntts()
 {
     // TODO: optimize
-    
+   
+    std::vector<int> inactiveEnttsIdxs;
+
     for (int i = 0; i < (int)m_Entities.size(); ++i)
     {
         if (!m_Entities[i]->IsActive())
-            m_Entities.erase(m_Entities.begin() + i);
+        {
+            Entity* pEntt = m_Entities[i];
+            const EntityID   id    = pEntt->GetID();
+            const char*      name  = pEntt->GetName();
+            const eLayerType layer = pEntt->GetLayer();
+
+            
+            // remove a record from map of ids
+            const auto& itID    = m_EnttsByIDs.find(id);
+            if (itID != m_EnttsByIDs.end())
+                m_EnttsByIDs.erase(itID);
+            else
+                LogErr(LOG, "there is no entt by ID: %d", id);
+
+            // remove a record from map of names
+            const auto& itName  = m_EnttsByNames.find(name);
+            if (itName != m_EnttsByNames.end())
+                m_EnttsByNames.erase(itName);
+            else
+                LogErr(LOG, "there is no entt by name: %s", name);
+
+            // remove a record from map of layers
+            const auto& itLayerVector = std::find(
+                m_EnttsByLayers[layer].begin(),
+                m_EnttsByLayers[layer].end(),
+                pEntt);
+
+            if (itLayerVector != m_EnttsByLayers[layer].end())
+            {
+                // remove a rectord from std::vector
+                *itLayerVector = m_EnttsByLayers[layer].back();
+                m_EnttsByLayers[layer].pop_back();
+            }
+            else
+            {
+                LogErr(LOG, "there is no entt by layer: %d", (int)layer);
+            }
+
+            // release memory from the entity 
+            delete pEntt;
+
+            // store this idx so later we will remove record from a map
+            inactiveEnttsIdxs.push_back(i);
+        }
+    }
+    
+    for (int idx : inactiveEnttsIdxs)
+    {
+        m_Entities[idx] = m_Entities.back();
+        m_Entities.pop_back();
     }
 }
 

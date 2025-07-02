@@ -43,6 +43,17 @@ struct EventSwitchAnimation : public Event
 
 ///////////////////////////////////////////////////////////
 
+struct EventPlayerShoot : public Event
+{
+    EventPlayerShoot(const EntityID enttID)
+    {
+        id = enttID;
+        type = EVENT_TYPE_PLAYER_SHOOT;
+    }
+};
+
+///////////////////////////////////////////////////////////
+
 struct EventPlayerMove : public Event
 {
     EventPlayerMove(

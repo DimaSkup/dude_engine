@@ -1,6 +1,7 @@
 #ifndef PROJECTILE_EMMITER_COMPONENT_H
 #define PROJECTILE_EMMITER_COMPONENT_H
 
+#include "../Log.h"
 #include "../IComponent.h"
 #include "../EntityMgr.h"
 #include "Transform.h"
@@ -19,6 +20,10 @@ public:
         m_Range(range),
         m_AngleRad(glm::radians((float)angleDeg)),
         m_IsLoop(loop)
+    {
+    }
+
+    virtual ~ProjectileEmmiter()
     {
     }
 
