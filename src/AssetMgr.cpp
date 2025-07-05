@@ -24,6 +24,7 @@ AssetMgr::AssetMgr(EntityMgr* pEnttMgr) : m_pEnttMgr(pEnttMgr)
 
 AssetMgr::~AssetMgr()
 {
+    ClearData();
 }
 
 ///////////////////////////////////////////////////////////
@@ -38,6 +39,8 @@ void AssetMgr::ClearData()
 
     m_Textures.clear();
     m_Fonts.clear();
+
+    m_SoundMgr.Release();
 }
 
 ///////////////////////////////////////////////////////////

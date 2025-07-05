@@ -17,8 +17,6 @@
 #include "Components/ProjectileEmmiter.h"
 #include "GameState.h"
 #include "EventMgr.h"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
 
 
 // init Game's static members 
@@ -34,11 +32,8 @@ Map* s_pMap = nullptr;
 // init some globals
 GameStates g_GameStates;
 
-std::vector<Mix_Chunk*> sounds;
-std::vector<Mix_Music*> music;
-int sound = 0;
-int song = 0;
-int volume = 0;
+int s_Sound = 0;
+int s_Song = 0;
 
 ///////////////////////////////////////////////////////////
 
@@ -50,125 +45,10 @@ Game::Game() : m_Running(false)
 
 Game::~Game()
 {
+    g_AssetMgr.ClearData(); 
+    
     if (s_pMap)
         delete s_pMap;
-}
-
-///////////////////////////////////////////////////////////
-
-int LoadMusic(const char* filename)
-{
-    Mix_Music* m = Mix_LoadMUS(filename);
-    if (m == nullptr)
-    {
-        LogErr(LOG, "failed to load music: %s\nSDL_Mixer err: %s",
-                filename, Mix_GetError());
-        return -1;
-    }
-
-    music.push_back(m);
-
-    return music.size()-1;
-}
-
-///////////////////////////////////////////////////////////
-
-int LoadSound(const char* filename)
-{
-    Mix_Chunk* m = Mix_LoadWAV(filename);
-    if (m == nullptr)
-    {
-        LogErr(LOG, "failed to load sound: %s\nSDL_Mixer err: %s",
-                filename, Mix_GetError());
-        return -1;
-    }
-
-    sounds.push_back(m);
-    return sounds.size()-1;
-}
-
-///////////////////////////////////////////////////////////
-
-void SetVolume(const int v)
-{
-    volume = (MIX_MAX_VOLUME * v) / 100;
-}
-
-///////////////////////////////////////////////////////////
-
-int PlayMusic(const int m)
-{
-    if (Mix_PlayingMusic() == 0)
-    {
-        Mix_Volume(1, volume);
-        Mix_PlayMusic(music[m], -1);
-    }
-    return 0;
-}
-
-///////////////////////////////////////////////////////////
-
-int PlaySound(const int s)
-{
-    //if (Mix_Playing(-1) != 0)
-    //    return 0;
-
-    Mix_Volume(-1, volume);
-    Mix_PlayChannel(-1, sounds[s], -1);
-    return 0;
-}
-
-///////////////////////////////////////////////////////////
-
-int InitMixer()
-{
-    Mix_Init(MIX_INIT_MP3);
-    SDL_Init(SDL_INIT_AUDIO);
-
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) 
-    {
-        LogErr(LOG, "SDL_Mixer can't init. Err: %s", Mix_GetError());
-        return -1;
-    }
-    SetVolume(80);
-    return 0;
-}
-
-///////////////////////////////////////////////////////////
-
-int QuitMixer()
-{
-    for (int s = 0; s < (int)sounds.size(); ++s)
-    {
-        Mix_FreeChunk(sounds[s]);
-        sounds[s] = nullptr;
-    }
-
-    for (int m = 0; m < (int)music.size(); ++m)
-    {
-        Mix_FreeMusic(music[m]);
-        music[m] = nullptr;
-    }
-
-    sounds.clear();
-    music.clear();
-
-    Mix_Quit();
-    return 0;
-}
-
-///////////////////////////////////////////////////////////
-
-void TogglePlay()
-{
-    if (Mix_PausedMusic() == 1)
-    {
-        Mix_ResumeMusic();
-    }
-    else
-    {
-        Mix_PauseMusic();
-    }
 }
 
 //---------------------------------------------------------
@@ -192,15 +72,14 @@ void Game::Initialize()
     g_GameStates.cameraMaxX = g_GameStates.levelMapWidth  - ms_Camera.w;
     g_GameStates.cameraMaxY = g_GameStates.levelMapHeight - ms_Camera.h;
 
-    // init SDL mixer for playing sounds/music
-    InitMixer();
-    sound = LoadSound("./assets/sounds/helicopter.wav");
-    song = LoadMusic("./assets/sounds/Fortunate Son.mp3");
+    // load sound/music assets
+    s_Sound = g_AssetMgr.LoadSound("./assets/sounds/helicopter.wav");
+    s_Song  = g_AssetMgr.LoadMusic("./assets/sounds/Fortunate Son.mp3");
 
-    // start playing the background music
-    PlayMusic(song);
-
-    PlaySound(sound);
+    // start playing the background music and helicopter sound
+    const int playTimes = -1;
+    g_AssetMgr.PlayMusic(s_Song);
+    g_AssetMgr.PlaySound(s_Sound, playTimes);
 
     LogMsg(LOG, "The game is initialized!");
 }
@@ -298,8 +177,6 @@ void Game::Update()
 
     pFpsCount->GetComponent<TextLabel>()->SetLabelText(fpsBuf, "charriot-font");
     pDeltaTime->GetComponent<TextLabel>()->SetLabelText(deltaTimeBuf, "charriot-font");
-
-//    PlaySound(sound);
 }
 
 //---------------------------------------------------------
@@ -388,8 +265,7 @@ void Game::ProcessNextLevel(const int levelNumber)
 {
     LogMsg(LOG, "Next level");
     m_Running = false;
-
-    QuitMixer();
+    g_AssetMgr.ClearData(); 
 }
 
 //---------------------------------------------------------
@@ -400,8 +276,6 @@ void Game::ProcessGameOver()
     m_Running = false;
     Destroy();
     LogMsg(LOG, "Game Over");
-
-    QuitMixer();
 }
 
 //---------------------------------------------------------
@@ -507,6 +381,7 @@ void Game::RenderFont()
 //---------------------------------------------------------
 void Game::Destroy()
 {
+    g_AssetMgr.ClearData(); 
 }
 
 //---------------------------------------------------------
