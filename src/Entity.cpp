@@ -38,8 +38,27 @@ Entity::Entity(
     }
 }
 
-/////////////////////////////////////////////////
+//---------------------------------------------------------
+// Desc:  entity destructor
+//---------------------------------------------------------
+Entity::~Entity()
+{
+    // remove components bounded to this entity
+    for (IComponent* pComponent : m_Components)
+    {
+        delete pComponent;
+        pComponent = nullptr;
+    }
 
+    m_Components.clear();
+    m_ComponentTypeMap.clear();
+    m_ID = 0;
+}
+
+//---------------------------------------------------------
+// Desc:  update the state of this entity
+// Args:  - deltaTime: the time passed since the prev frame
+//---------------------------------------------------------
 void Entity::Update(const float deltaTime)
 {
     // update each component of this entity
@@ -65,11 +84,6 @@ void Entity::Render()
 void Entity::Destroy()
 {
     m_IsActive = false;
-
-    for (IComponent* pComponent : m_Components)
-    {
-        delete pComponent;
-    }
 }
 
 ///////////////////////////////////////////////////////////

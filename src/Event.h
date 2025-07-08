@@ -11,6 +11,10 @@ enum eEventType
     EVENT_TYPE_PLAYER_SHOOT,
     EVENT_TYPE_PLAYER_MOVE,
     EVENT_TYPE_PLAYER_STOP,     // doesn't move (velocity is zero)
+    EVENT_TYPE_PLAYER_HIT_ENEMY_PROJECTILE,
+
+    EVENT_TYPE_DESTROY_ENTITY,    
+    EVENT_TYPE_KILL_ENEMY,
 };
 
 // ==================================================================
@@ -76,6 +80,39 @@ struct EventPlayerStop : public Event
     {
         id = enttID;
         type = EVENT_TYPE_PLAYER_STOP;
+    }
+};
+
+///////////////////////////////////////////////////////////
+
+struct EventPlayerHitEnemyProjectile : public Event
+{
+    EventPlayerHitEnemyProjectile(const EntityID enttID)
+    {
+        id = enttID;
+        type = EVENT_TYPE_PLAYER_HIT_ENEMY_PROJECTILE;
+    }
+};
+
+///////////////////////////////////////////////////////////
+
+struct EventDestroyEntity : public Event
+{
+    EventDestroyEntity(const EntityID enttID)
+    {
+        id = enttID;
+        type = EVENT_TYPE_DESTROY_ENTITY;
+    }
+};
+
+///////////////////////////////////////////////////////////
+
+struct EventKillEnemy : public Event
+{
+    EventKillEnemy(const EntityID enemyID)
+    {
+        id = enemyID;
+        type = EVENT_TYPE_KILL_ENEMY;
     }
 };
 

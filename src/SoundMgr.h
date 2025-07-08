@@ -14,6 +14,8 @@
 #include <SDL2/SDL_mixer.h>
 #include <vector>
 #include <map>
+#include <string>
+
 
 struct SoundAssetName
 {
@@ -45,13 +47,23 @@ public:
     int LoadSound(const char* filename);
     
     eSoundState PlayMusic(const int m);
-    eSoundState PlaySound(const int s, const int times);
+
+    eSoundState PlaySound(
+        const int channel, 
+        const int soundIdx,
+        const int times);
+
+    int GetMusicIdxByName(const char* name);
+    int GetSoundIdxByName(const char* name);
 
 public:
-    std::vector<Mix_Chunk*> m_Sounds;
-    std::vector<Mix_Music*> m_Music;
-    int m_Sound  = 0;
-    int m_Song   = 0;
+    std::vector<Mix_Chunk*>    m_Sounds;
+    std::vector<Mix_Music*>    m_Music;
+    std::map<std::string, int> m_SoundNameToIdx;
+    std::map<std::string, int> m_MusicNameToIdx;
+
+    //int m_Sound  = 0;
+    //int m_Song   = 0;
     int m_Volume = 0;
 };
 

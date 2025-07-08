@@ -72,6 +72,7 @@ Level1 = {
         mapSizeY = 20
     },
 
+
     ----------------------------------------------------
     -- table to define entities and their components
     ----------------------------------------------------
@@ -203,7 +204,6 @@ Level1 = {
                 }
             }
         },
-        
         [4] = {
             name = "tank2",
             layer = 2,
@@ -1544,6 +1544,5 @@ Level1 = {
                 }
             }
         }
-
     } -- entities
 } -- Level1

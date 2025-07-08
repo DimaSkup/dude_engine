@@ -69,23 +69,23 @@ public:
         const float maxY = g_GameStates.levelMapHeight;
 
         // check if we touch the window left/right edge
-        if ((nextPosX - halfW) <= 0)
+        if (nextPosX <= 0)
         {
-            pos = {0, pos.y};
+            pos = {1, pos.y};
         }
-        else if ((nextPosX + halfW) >= maxX)
+        else if ((nextPosX + width) >= maxX)
         {
-            pos = { maxX-width, pos.y };
+            pos = { maxX-width-1, pos.y };
         }
 
         // check if we touch the window top/bottom edge
-        if ((nextPosY - halfH) <= 0)
+        if ((nextPosY - height) <= 0)
         {
-            pos = { pos.x, 0 };
+            pos = { pos.x, 1 };
         }
-        else if ((nextPosY + halfH) >= maxY)
+        else if ((nextPosY + height) >= maxY)
         {
-            pos = { pos.x, maxY-height };
+            pos = { pos.x, maxY-height-1 };
         }
     }
 

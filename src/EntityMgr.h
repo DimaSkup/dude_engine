@@ -45,6 +45,7 @@ public:
     eColliderTag   CheckEnttCollisions(Entity* pEntt) const;
 
     EntityID m_LastEnttID = 0;
+    bool m_PlayerIsKilled = false;
 
 private:
     Entity*              m_pPlayer = nullptr;

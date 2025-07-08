@@ -44,10 +44,27 @@ public:
         return m_SoundMgr.PlayMusic(m);     
     }
 
-    inline eSoundState PlaySound(const int s, const int times)
+    //-----------------------------------------------------
+    // Desc:  play sound by index
+    // Args:  - soundIdx:  an index to the sound asset
+    //        - times:     play this number of times
+    //        - channel:   channel index to be used
+    // Ret:   a flag which show us the state of the sound channel
+    //-----------------------------------------------------
+    inline eSoundState PlaySound(
+        const int channel, 
+        const int soundIdx,
+        const int times)
     {   
-        return m_SoundMgr.PlaySound(s, times);   
+        return m_SoundMgr.PlaySound(channel, soundIdx, times);   
     }
+
+    inline int GetMusicIdxByName(const char* name)
+    {   return m_SoundMgr.GetMusicIdxByName(name);  }
+
+    inline int GetSoundIdxByName(const char* name)
+    {   return m_SoundMgr.GetSoundIdxByName(name);  }
+
 
 private:
     EntityMgr*                          m_pEnttMgr = nullptr;

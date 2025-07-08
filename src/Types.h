@@ -26,10 +26,10 @@ enum eColliderTag
 enum eCollisionType 
 {
     NO_COLLISION,
-    PLAYER_ENEMY_COLLISION,
-    PLAYER_PROJECTILE_COLLISION,
-    ENEMY_PROJECTILE_COLLISION,
-    PLAYER_VEGETATION_COLLISION,
+    PLAYER_ENEMY_COLLISION,           // when player collides with any enemy
+    PLAYER_PROJECTILE_COLLISION,      // when player collides with any projectile (for instance: bullet)
+    ENEMY_PROJECTILE_COLLISION,       // when enemy collides with any projectile (for instance: bullet)
+    PLAYER_VEGETATION_COLLISION,      // when player collides with any vegetation
     PLAYER_LEVEL_COMPLETE_COLLISION,  // if we got this type of collision it means that we complete the level
 };
 

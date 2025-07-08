@@ -30,6 +30,8 @@ public:
         const eLayerType layer,
         const EntityID id);
 
+    ~Entity();
+
     void Update(const float deltaTime);
     void Render();
     void Destroy();

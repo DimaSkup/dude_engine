@@ -35,9 +35,8 @@ GameStates g_GameStates;
 int s_Sound = 0;
 int s_Song = 0;
 
-///////////////////////////////////////////////////////////
 
-
+//==================================================================
 
 Game::Game() : m_Running(false)
 {
@@ -73,13 +72,24 @@ void Game::Initialize()
     g_GameStates.cameraMaxY = g_GameStates.levelMapHeight - ms_Camera.h;
 
     // load sound/music assets
-    s_Sound = g_AssetMgr.LoadSound("./assets/sounds/helicopter.wav");
-    s_Song  = g_AssetMgr.LoadMusic("./assets/sounds/Fortunate Son.mp3");
+    g_AssetMgr.LoadSound("./assets/sounds/helicopter.wav");
+    g_AssetMgr.LoadSound("./assets/sounds/explosion_2.wav");
+    g_AssetMgr.LoadMusic("./assets/sounds/Fortunate_Son.mp3");
+
+    const int soundHelicopter = g_AssetMgr.GetSoundIdxByName("helicopter");
+    const int musicBackground = g_AssetMgr.GetMusicIdxByName("Fortunate_Son");
 
     // start playing the background music and helicopter sound
-    const int playTimes = -1;
-    g_AssetMgr.PlayMusic(s_Song);
-    g_AssetMgr.PlaySound(s_Sound, playTimes);
+    const int playTimes              = -1;
+    const int soundChannelHelicopter = -1;
+
+    g_AssetMgr.PlayMusic(musicBackground);
+#if 1
+    g_AssetMgr.PlaySound(
+        soundChannelHelicopter,
+        soundHelicopter, 
+        playTimes+1);
+#endif
 
     LogMsg(LOG, "The game is initialized!");
 }
@@ -230,6 +240,15 @@ void Game::HandleCameraMovement()
 //---------------------------------------------------------
 void Game::CheckCollisions()
 {
+
+    if (g_EntityMgr.m_PlayerIsKilled)
+    { 
+        SetConsoleColor(RED);
+            LogMsg("\nYOU LOST :(\nTRY AGAIN!\n");
+            SetConsoleColor(RESET);
+            ProcessGameOver();
+    }
+
     const eCollisionType cType = g_EntityMgr.CheckCollisions();
 
     switch (cType)
@@ -238,6 +257,7 @@ void Game::CheckCollisions()
         {
             return;
         }
+#if 0
         case PLAYER_ENEMY_COLLISION:
         case PLAYER_PROJECTILE_COLLISION:
         {
@@ -247,6 +267,12 @@ void Game::CheckCollisions()
             ProcessGameOver();
             break;
         }
+
+        case ENEMY_PROJECTILE_COLLISION:
+        {
+            break;
+        }
+#endif
         case PLAYER_LEVEL_COMPLETE_COLLISION:
         {
             ProcessNextLevel(1);

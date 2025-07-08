@@ -4,6 +4,7 @@
 #include "../Log.h"
 #include "../IComponent.h"
 #include "../EntityMgr.h"
+#include "../EventMgr.h"
 #include "Transform.h"
 #include "../../lib/glm/glm.hpp"
 
@@ -55,7 +56,10 @@ public:
                 m_pTransform->m_Position = m_Origin;
 
             else
-                m_pOwner->Destroy();
+            {
+                const EntityID id = m_pOwner->GetID();
+                g_EventMgr.AddEvent(EventDestroyEntity(id));
+            }
         }
     }
 

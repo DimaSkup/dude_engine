@@ -7,6 +7,7 @@
 #include "Components/Collider.h"
 #include "Components/Sprite.h"
 #include "Components/ProjectileEmmiter.h"
+#include "AssetMgr.h"
 #include "EventMgr.h"
 #include <stdio.h>
 
@@ -36,6 +37,100 @@ void EntityMgr::ClearData()
     m_EnttsByLayers.clear();
 }
 
+
+
+void HandleEventPlayerShoot(Entity& player, EntityMgr& mgr)
+{
+    const Transform* pTransform = player.GetComponent<Transform>();
+    const Sprite*    pSprite    = player.GetComponent<Sprite>();
+
+    // compute the projectile's init position, velocity, direction
+    const glm::vec2 playerPos    = pTransform->GetPosition();
+    const int       playerWidth  = pTransform->GetWidth();
+    const int       playerHeight = pTransform->GetHeight();
+
+    int projectileOffsetX = 0;
+    int projectileOffsetY = 0;
+
+    // define an angle of projectile emitting based on player's direction
+    int angleDeg = 0;
+
+    switch (pSprite->GetCurrAnimationType())
+    {
+        case ANIMATION_TYPE_DOWN:
+        { 
+            angleDeg = 90;  
+            projectileOffsetX = playerWidth / 2;
+            projectileOffsetY = playerHeight;
+            break;
+        }
+        case ANIMATION_TYPE_UP:    
+        {
+            angleDeg = 270; 
+            projectileOffsetX = playerWidth / 2;
+            projectileOffsetY = 0;
+            break;
+        }
+        case ANIMATION_TYPE_RIGHT: 
+        {
+            angleDeg = 0;   
+            projectileOffsetX = playerWidth;
+            projectileOffsetY = playerHeight / 2;
+            break;
+        }
+        case ANIMATION_TYPE_LEFT:  
+        {
+            angleDeg = 180; 
+            projectileOffsetX = 0;
+            projectileOffsetY = playerHeight / 2;
+            break;
+        }
+    }
+    const EntityID projectileID = mgr.m_LastEnttID + 1;
+    char name[64]{0};
+    sprintf(name, "player_projectile_%d", projectileID);
+
+    Entity& entt = mgr.AddEntity(name, LAYER_PROJECTILE);
+
+    
+    // setup a projectile parameters
+    constexpr int width  = 4;
+    constexpr int height = 4;
+    const     int posX   = (int)playerPos.x + projectileOffsetX - width/2;
+    const     int posY   = (int)playerPos.y + projectileOffsetY - height/2;
+    constexpr int velX   = 0;
+    constexpr int velY   = 0;
+    constexpr int scale  = 1;
+
+    entt.AddComponent<Transform>(
+        posX,
+        posY,
+        velX,
+        velY,
+        width,
+        height,
+        scale);
+   
+    entt.AddComponent<Sprite>("projectile-texture");
+
+    entt.AddComponent<Collider>(
+        eColliderTag::FRIENDLY_PROJECTILE,
+        posX,
+        posY,
+        width,
+        height);
+        
+    constexpr int speed = 600;
+    constexpr int range = 300;
+    constexpr bool loop = false;
+
+    entt.AddComponent<ProjectileEmmiter>(
+        speed,
+        angleDeg,
+        range,
+        loop); 
+}
+
 //---------------------------------------------------------
 // Desc:   main updating function for the entity manager;
 //         here we update the all entities states
@@ -58,65 +153,8 @@ void EntityMgr::Update(const float deltaTime)
             }
             case EVENT_TYPE_PLAYER_SHOOT:
             {
-                Entity&          player     = *GetPlayer();
-                const Transform* pTransform = player.GetComponent<Transform>();
-                const Sprite*    pSprite    = player.GetComponent<Sprite>();
-
-                // compute the projectile's init position, velocity, direction
-                const glm::vec2 playerPos = pTransform->GetPosition();
-
-                // define an angle of projectile emitting based on player's direction
-                int angleDeg = 0;
-
-                switch (pSprite->GetCurrAnimationType())
-                {
-                    case ANIMATION_TYPE_DOWN:  angleDeg = 90;  break;
-                    case ANIMATION_TYPE_UP:    angleDeg = 270; break;
-                    case ANIMATION_TYPE_RIGHT: angleDeg = 0;   break;
-                    case ANIMATION_TYPE_LEFT:  angleDeg = 180; break;
-                }
-                const EntityID projectileID = m_LastEnttID + 1;
-                char name[64]{0};
-                sprintf(name, "player_projectile_%d", projectileID);
-
-                Entity& entt = AddEntity(name, LAYER_PROJECTILE);
-
-                const     int posX   = (int)playerPos.x;
-                const     int posY   = (int)playerPos.y;
-                constexpr int velX   = 0;
-                constexpr int velY   = 0;
-                constexpr int width  = 4;
-                constexpr int height = 4;
-                constexpr int scale  = 1;
-
-                entt.AddComponent<Transform>(
-                    posX,
-                    posY,
-                    velX,
-                    velY,
-                    width,
-                    height,
-                    scale);
-               
-                entt.AddComponent<Sprite>("projectile-texture");
-
-                entt.AddComponent<Collider>(
-                    eColliderTag::FRIENDLY_PROJECTILE,
-                    posX,
-                    posY,
-                    width,
-                    height);
-                    
-                constexpr int speed = 600;
-                constexpr int range = 300;
-                constexpr bool loop = false;
-
-                entt.AddComponent<ProjectileEmmiter>(
-                    speed,
-                    angleDeg,
-                    range,
-                    loop); 
-
+                Entity& player = *GetPlayer();
+                HandleEventPlayerShoot(player, *this);
                 break;
             }
             case EVENT_TYPE_PLAYER_MOVE:
@@ -127,12 +165,48 @@ void EntityMgr::Update(const float deltaTime)
             case EVENT_TYPE_PLAYER_STOP:
             {
                 pEntt->GetComponent<Transform>()->SetVelocity(0,0);
+                break;
+            }
+            case EVENT_TYPE_PLAYER_HIT_ENEMY_PROJECTILE:
+            {
+                m_PlayerIsKilled = true;
+                break;
+            }
+            case EVENT_TYPE_DESTROY_ENTITY:
+            {
+                pEntt->Destroy();
+                break;
+            }
+            case EVENT_TYPE_KILL_ENEMY:
+            {
+                const int soundExplosion = g_AssetMgr.GetSoundIdxByName("explosion_2");
+                int channel = 3;
+                int playTimes = 1;
+                eSoundState soundState = g_AssetMgr.PlaySound(channel, soundExplosion, playTimes);
+                while (soundState == CHANNEL_STATE_BUSY)
+                {
+                    channel++;
+                    soundState = g_AssetMgr.PlaySound(channel, soundExplosion, playTimes);
+                }
+                pEntt->Destroy();
+
+                // also destroy a projectile emmiter of this enemy
+                const char* name = pEntt->GetName();
+                char projectileName[64]{'\0'};
+                sprintf(projectileName, "%s%s", name, "_projectile");
+
+                Entity* pProjectile = GetEnttByName(projectileName);
+                pProjectile->Destroy();
+
+                break;
             }
         }
     }
 
     // we handled all the events so clear the list 
     g_EventMgr.m_Events.clear();
+    
+    DestroyInactiveEntts();
 
     // update each component of each entity
     for (Entity* pEntt : m_Entities)
@@ -140,7 +214,6 @@ void EntityMgr::Update(const float deltaTime)
         pEntt->Update(deltaTime);
     }
 
-    DestroyInactiveEntts();
 }
 
 //---------------------------------------------------------
@@ -160,6 +233,7 @@ void EntityMgr::DestroyInactiveEntts()
             const EntityID   id    = pEntt->GetID();
             const char*      name  = pEntt->GetName();
             const eLayerType layer = pEntt->GetLayer();
+
 
             
             // remove a record from map of ids
@@ -193,19 +267,32 @@ void EntityMgr::DestroyInactiveEntts()
                 LogErr(LOG, "there is no entt by layer: %d", (int)layer);
             }
 
+            // TODO: debug
+            LogMsg("entt is destroyed: %s", name);
+
             // release memory from the entity 
             delete pEntt;
+            m_Entities[i] = nullptr;
 
             // store this idx so later we will remove record from a map
             inactiveEnttsIdxs.push_back(i);
         }
     }
     
-    for (int idx : inactiveEnttsIdxs)
+    // remove records about deleted entities
+    auto rit = inactiveEnttsIdxs.rbegin();
+    for (; rit != inactiveEnttsIdxs.rend(); ++rit)
     {
+        const int idx = *rit;
+        m_Entities.erase(m_Entities.begin() + idx);
+    }
+
+#if 0
+    for (int idx : inactiveEnttsIdxs)
         m_Entities[idx] = m_Entities.back();
         m_Entities.pop_back();
     }
+#endif
 }
 
 //---------------------------------------------------------
@@ -384,17 +471,28 @@ eCollisionType EntityMgr::CheckCollisions() const
                 {
                     switch (cTag2)
                     {
-                        case ENEMY:          return PLAYER_ENEMY_COLLISION;
-                        case PROJECTILE:     return PLAYER_PROJECTILE_COLLISION;
-                        case LEVEL_COMPLETE: return PLAYER_LEVEL_COMPLETE_COLLISION;
+                //        case ENEMY:          return PLAYER_ENEMY_COLLISION;
+                        case PROJECTILE:    
+                        {
+                            const EntityID playerID = pCollider1->GetOwner()->GetID();
+                            g_EventMgr.AddEvent(EventPlayerHitEnemyProjectile(playerID));
+                            break;
+                        }
+                //        case LEVEL_COMPLETE: return PLAYER_LEVEL_COMPLETE_COLLISION;
                     } 
                 }
 
                 // else we maybe have collision btw enemy and smth
                 else if (cTag == eColliderTag::ENEMY)
                 {
-                   if (cTag2 == FRIENDLY_PROJECTILE)
-                       return ENEMY_PROJECTILE_COLLISION;
+                    if (cTag2 == FRIENDLY_PROJECTILE)
+                    {
+                        const EntityID enemyID      = pCollider1->GetOwner()->GetID();
+                        const EntityID projectileID = pCollider2->GetOwner()->GetID();
+
+                        g_EventMgr.AddEvent(EventKillEnemy(enemyID));
+                        g_EventMgr.AddEvent(EventDestroyEntity(projectileID)); 
+                    }
                 }
             }
         }
