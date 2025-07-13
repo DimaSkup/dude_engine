@@ -29,13 +29,13 @@ enum eSoundState
     CHANNEL_STATE_START_PLAYING,
 };
 
-///////////////////////////////////////////////////////////
+//===================================================================
 
 class SoundMgr
 {
 public:
     SoundMgr();
-    ~SoundMgr();
+    ~SoundMgr() { Release(); }
 
     int Initialize();
     void Release();
@@ -66,5 +66,10 @@ public:
     //int m_Song   = 0;
     int m_Volume = 0;
 };
+
+//===================================================================
+// a global instance of the sound mananger
+//===================================================================
+extern SoundMgr g_SoundMgr;
 
 #endif

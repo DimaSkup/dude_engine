@@ -40,7 +40,6 @@ void AssetMgr::ClearData()
     m_Textures.clear();
     m_Fonts.clear();
 
-    m_SoundMgr.Release();
 }
 
 ///////////////////////////////////////////////////////////

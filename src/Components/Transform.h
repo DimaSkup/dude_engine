@@ -79,7 +79,7 @@ public:
         }
 
         // check if we touch the window top/bottom edge
-        if ((nextPosY - height) <= 0)
+        if (nextPosY <= 0)
         {
             pos = { pos.x, 1 };
         }

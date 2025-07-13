@@ -83,7 +83,9 @@ void Game::Initialize()
     const int playTimes              = -1;
     const int soundChannelHelicopter = -1;
 
+
     g_AssetMgr.PlayMusic(musicBackground);
+
 #if 1
     g_AssetMgr.PlaySound(
         soundChannelHelicopter,

@@ -56,8 +56,11 @@ Level1 = {
         [32] = { type="texture", id = "radar-texture", file = "./assets/images/radar.png" },
         [33] = { type="texture", id = "bounding-box", file = "./assets/images/collision-texture.png" },
         [34] = { type="texture", id = "help-screen-texture-level1", file = "./assets/images/HelpScreenLevel1Jungle.png" },
-        [35] = { type="sound", id = "blades-sound", file = "./assets/sounds/blades.wav" },
-        [36] = { type="font", id = "charriot-font", file = "./assets/fonts/charriot.ttf", fontSize = 14 }
+        [35] = { type="texture", id = "explosion_1", file = "./assets/images/explosion_1.png" },
+        [36] = { type="texture", id = "explosion_2", file = "./assets/images/explosion_2.png" },
+        [37] = { type="texture", id = "explosion_3", file = "./assets/images/explosion_3.png" },
+        [38] = { type="sound", id = "blades-sound", file = "./assets/sounds/blades.wav" },
+        [39] = { type="font", id = "charriot-font", file = "./assets/fonts/charriot.ttf", fontSize = 14 }
     },
 
     ----------------------------------------------------

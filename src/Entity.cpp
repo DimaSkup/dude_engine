@@ -79,13 +79,6 @@ void Entity::Render()
     }
 }
 
-/////////////////////////////////////////////////
-
-void Entity::Destroy()
-{
-    m_IsActive = false;
-}
-
 ///////////////////////////////////////////////////////////
 
 void Entity::ListAllComponents() const

@@ -33,15 +33,14 @@ public:
     SDL_Point    GetTextureSize(SDL_Texture* pTexture);
 
     // sounds/music related methods
-    inline void TogglePlay()                    { m_SoundMgr.TogglePlay(); }
-    inline void SetVolume(const int v)          { m_SoundMgr.SetVolume(v); }
+    inline void TogglePlay()                    { g_SoundMgr.TogglePlay(); }
 
-    inline int LoadMusic(const char* filename)  { return m_SoundMgr.LoadMusic(filename); }
-    inline int LoadSound(const char* filename)  { return m_SoundMgr.LoadSound(filename); }
+    inline int LoadMusic(const char* filename)  { return g_SoundMgr.LoadMusic(filename); }
+    inline int LoadSound(const char* filename)  { return g_SoundMgr.LoadSound(filename); }
     
     inline eSoundState PlayMusic(const int m)   
     {   
-        return m_SoundMgr.PlayMusic(m);     
+        return g_SoundMgr.PlayMusic(m);     
     }
 
     //-----------------------------------------------------
@@ -56,19 +55,18 @@ public:
         const int soundIdx,
         const int times)
     {   
-        return m_SoundMgr.PlaySound(channel, soundIdx, times);   
+        return g_SoundMgr.PlaySound(channel, soundIdx, times);   
     }
 
     inline int GetMusicIdxByName(const char* name)
-    {   return m_SoundMgr.GetMusicIdxByName(name);  }
+    {   return g_SoundMgr.GetMusicIdxByName(name);  }
 
     inline int GetSoundIdxByName(const char* name)
-    {   return m_SoundMgr.GetSoundIdxByName(name);  }
+    {   return g_SoundMgr.GetSoundIdxByName(name);  }
 
 
 private:
     EntityMgr*                          m_pEnttMgr = nullptr;
-    SoundMgr                            m_SoundMgr;
     std::map<std::string, SDL_Texture*> m_Textures;
     std::map<std::string, TTF_Font*>    m_Fonts;
 };

@@ -199,10 +199,12 @@ public:
     
     virtual void Update(const float deltaTime) override
     {
+        m_AnimationTime += (deltaTime * 1000.0f);
+
         // update the animation
         if (m_IsAnimated)
         {
-            m_SrcRect.x = m_SrcRect.w * (int)((SDL_GetTicks() / m_AnimationSpeed) % m_NumFrames);
+            m_SrcRect.x = m_SrcRect.w * (int)(((int)m_AnimationTime / m_AnimationSpeed) % m_NumFrames);
         }
         m_SrcRect.y = m_AnimationIdx * m_pTransform->m_Height;
 
@@ -242,6 +244,7 @@ private:
     int             m_NumFrames      = 0;
     int             m_AnimationSpeed = 0;
     uint            m_AnimationIdx   = 0;
+    float           m_AnimationTime  = 0;       // time since the start of the animation
     
     bool            m_IsAnimated     = false;     
     bool            m_IsFixed        = false;   // is always fixed at the same screen position

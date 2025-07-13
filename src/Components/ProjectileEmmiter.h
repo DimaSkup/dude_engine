@@ -28,6 +28,12 @@ public:
     {
     }
 
+    //-----------------------------------------------------
+    // Desc:  set a flag to define if this emmiter is looped
+    // Args:  - state:  a boolean flag
+    //-----------------------------------------------------
+    void SetLooped(const bool state) { m_IsLoop = state; }
+
     ///////////////////////////////////////////////////////
 
     virtual void Initialize() override
@@ -49,17 +55,27 @@ public:
         const int distanceSqr       = (int)glm::dot(distanceVec, distanceVec);
         const int rangeSqr          = m_Range*m_Range; 
 
+        m_Lifetime += deltaTime;
+
         // if we need to destroy/move this projectile
         if (distanceSqr > rangeSqr)
         {
             if (m_IsLoop)
+            {
                 m_pTransform->m_Position = m_Origin;
-
+                m_Lifetime = 0;
+            }
             else
             {
                 const EntityID id = m_pOwner->GetID();
                 g_EventMgr.AddEvent(EventDestroyEntity(id));
             }
+        }
+        
+        if (m_Lifetime >= 4000.0f)
+        {
+            const EntityID id = m_pOwner->GetID();
+            g_EventMgr.AddEvent(EventDestroyEntity(id));
         }
     }
 
@@ -73,6 +89,7 @@ private:
     int        m_Speed      = 0;       // speed in pixels
     int        m_Range      = 0;       // range in pixels where projectile is destroyed automatically
     float      m_AngleRad   = 0;       // angle in radians
+    float      m_Lifetime   = 0;       // lifetime of projectile since start of animation
     bool       m_IsLoop     = false;   // should emmiting repeat?
 };
 

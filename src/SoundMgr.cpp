@@ -2,6 +2,13 @@
 #include "Log.h"
 #include "FileSystem.h"
 
+// global instance of the sound manager
+SoundMgr g_SoundMgr;
+
+
+//---------------------------------------------------------
+// Desc: default constructor
+//---------------------------------------------------------
 SoundMgr::SoundMgr()
 {
     if (Initialize() == -1)
@@ -11,10 +18,6 @@ SoundMgr::SoundMgr()
     }
 }
 
-SoundMgr::~SoundMgr()
-{
-    Release();
-}
 
 //---------------------------------------------------------
 // Desc:   initialize the SDL_mixer which is responsible for sounds/music

@@ -10,6 +10,7 @@
 #define ENTITY_H
 
 #include "Constants.h"
+#include "EventMgr.h"
 #include "EntityMgr.h"
 #include "IComponent.h"
 #include "Types.h"
@@ -34,7 +35,15 @@ public:
 
     void Update(const float deltaTime);
     void Render();
-    void Destroy();
+
+    //-----------------------------------------------------
+    // Desc:   destroy this entity on the next update of entity manager
+    //-----------------------------------------------------
+    inline void Destroy()
+    {
+        m_IsActive = false;
+        g_EventMgr.AddEvent(EventDestroyEntity(m_ID));
+    }
 
     inline bool        IsActive()  const { return m_IsActive; }
     inline EntityID    GetID()     const { return m_ID; }

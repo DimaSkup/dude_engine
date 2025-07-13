@@ -21,7 +21,8 @@ public:
 
     void ClearData();
     void Update(const float deltaTime);
-    void DestroyInactiveEntts();
+    void DestroyEntt(const EntityID id);
+//    void DestroyInactiveEntts();
     void Render();
 
     inline bool HasNoEntts()  const { return m_Entities.empty(); }

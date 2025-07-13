@@ -38,7 +38,11 @@ void EntityMgr::ClearData()
 }
 
 
-
+//---------------------------------------------------------
+// Desc:   a handler for event when the player is shooting
+// Args:   - player: player's entity
+//         - mgr:    entity manager
+//---------------------------------------------------------
 void HandleEventPlayerShoot(Entity& player, EntityMgr& mgr)
 {
     const Transform* pTransform = player.GetComponent<Transform>();
@@ -57,6 +61,10 @@ void HandleEventPlayerShoot(Entity& player, EntityMgr& mgr)
 
     switch (pSprite->GetCurrAnimationType())
     {
+        case ANIMATION_TYPE_SINGLE:
+        {
+            break;
+        }
         case ANIMATION_TYPE_DOWN:
         { 
             angleDeg = 90;  
@@ -86,10 +94,13 @@ void HandleEventPlayerShoot(Entity& player, EntityMgr& mgr)
             break;
         }
     }
+
+    // generate a name for the projectile emmiter entity...
     const EntityID projectileID = mgr.m_LastEnttID + 1;
     char name[64]{0};
     sprintf(name, "player_projectile_%d", projectileID);
 
+    // ... and create it
     Entity& entt = mgr.AddEntity(name, LAYER_PROJECTILE);
 
     
@@ -132,6 +143,34 @@ void HandleEventPlayerShoot(Entity& player, EntityMgr& mgr)
 }
 
 //---------------------------------------------------------
+// Desc:   a helper to play sound by its name only once
+// Args:   - soundName: a name of the sound from the sound mgr
+//---------------------------------------------------------
+void PlaySound(const char* soundName)
+{
+    if (!soundName || soundName[0] == '\0')
+    {
+        LogErr(LOG, "can't play sound: input name is empty!");
+        return;
+    }
+
+    // get sound idx
+    const int soundIdx = g_AssetMgr.GetSoundIdxByName(soundName);
+
+    // try to play sound
+    int channel = 3;
+    constexpr int playTimes = 1;
+    eSoundState soundState = g_AssetMgr.PlaySound(channel, soundIdx, playTimes);
+
+    // if for any reason the channel is busy we try another one
+    while (soundState == CHANNEL_STATE_BUSY)
+    {
+        channel++;
+        soundState = g_AssetMgr.PlaySound(channel, soundIdx, playTimes);
+    }
+}
+
+//---------------------------------------------------------
 // Desc:   main updating function for the entity manager;
 //         here we update the all entities states
 // Args:   - deltaTime: the time passed since the previous frame
@@ -140,8 +179,7 @@ void EntityMgr::Update(const float deltaTime)
 {
     for (const Event& e : g_EventMgr.m_Events)
     {
-        const EntityID id = e.id;
-        Entity* pEntt = GetEnttByID(id);
+        Entity* pEntt = GetEnttByID(e.id);
 
         switch (e.type)
         {
@@ -174,29 +212,67 @@ void EntityMgr::Update(const float deltaTime)
             }
             case EVENT_TYPE_DESTROY_ENTITY:
             {
-                pEntt->Destroy();
+                DestroyEntt(e.id);
                 break;
             }
             case EVENT_TYPE_KILL_ENEMY:
             {
-                const int soundExplosion = g_AssetMgr.GetSoundIdxByName("explosion_2");
-                int channel = 3;
-                int playTimes = 1;
-                eSoundState soundState = g_AssetMgr.PlaySound(channel, soundExplosion, playTimes);
-                while (soundState == CHANNEL_STATE_BUSY)
-                {
-                    channel++;
-                    soundState = g_AssetMgr.PlaySound(channel, soundExplosion, playTimes);
-                }
-                pEntt->Destroy();
+                Entity* pEnemyEntt = pEntt;
+
+                PlaySound("explosion_2");
 
                 // also destroy a projectile emmiter of this enemy
                 const char* name = pEntt->GetName();
                 char projectileName[64]{'\0'};
                 sprintf(projectileName, "%s%s", name, "_projectile");
 
+                // find a projectile entity and set that its
+                // projectile emitter is not looped anymore
                 Entity* pProjectile = GetEnttByName(projectileName);
-                pProjectile->Destroy();
+                pProjectile->GetComponent<ProjectileEmmiter>()->SetLooped(false);
+
+                const int frameCount     = (int)12;
+                const int animationSpeed = (int)100;
+                const bool hasDirections = false;
+                const bool fixed         = false;
+
+                const Transform* pEnemyTr  = pEnemyEntt->GetComponent<Transform>();
+                const glm::vec2 pos        = pEnemyTr->GetPosition();
+                const int       width      = pEnemyTr->GetWidth();
+                const int       height     = pEnemyTr->GetHeight();
+                const int       halfWidth  = width >> 1;
+                const int       halfHeight = height >> 1;
+                const int       centerX = pos.x + halfWidth;
+                const int       centerY = pos.y + halfHeight;
+
+                Entity& explosionEntt = AddEntity("explosion", LAYER_OBSTACLE);
+                const int explWidth     = 96;
+                const int explHeight    = 96;
+                const int explPosX      = centerX - (explWidth >> 1);
+                const int explPosY      = centerY - (explHeight >> 1);
+                const int explVelX      = 0;
+                const int explVelY      = 0;
+                const int explScale     = 1.0f;
+
+                explosionEntt.AddComponent<Transform>(
+                    explPosX,
+                    explPosY,
+                    explVelX,
+                    explVelY,
+                    explWidth,
+                    explHeight,
+                    explScale);
+
+                explosionEntt.AddComponent<Sprite>(
+                    "explosion_2",
+                    frameCount,
+                    animationSpeed,
+                    hasDirections,
+                    fixed);
+
+                // destroy the enemy entity
+                DestroyEntt(e.id);
+
 
                 break;
             }
@@ -206,7 +282,7 @@ void EntityMgr::Update(const float deltaTime)
     // we handled all the events so clear the list 
     g_EventMgr.m_Events.clear();
     
-    DestroyInactiveEntts();
+    //DestroyInactiveEntts();
 
     // update each component of each entity
     for (Entity* pEntt : m_Entities)
@@ -216,83 +292,58 @@ void EntityMgr::Update(const float deltaTime)
 
 }
 
-//---------------------------------------------------------
-// Desc:   remove all the inactive entities
-//---------------------------------------------------------
-void EntityMgr::DestroyInactiveEntts()
+void EntityMgr::DestroyEntt(const EntityID id)
 {
-    // TODO: optimize
-   
-    std::vector<int> inactiveEnttsIdxs;
+    Entity* pEntt = GetEnttByID(id);
+    const char*      name  = pEntt->GetName();
+    const eLayerType layer = pEntt->GetLayer();
 
-    for (int i = 0; i < (int)m_Entities.size(); ++i)
-    {
-        if (!m_Entities[i]->IsActive())
-        {
-            Entity* pEntt = m_Entities[i];
-            const EntityID   id    = pEntt->GetID();
-            const char*      name  = pEntt->GetName();
-            const eLayerType layer = pEntt->GetLayer();
-
-
-            
-            // remove a record from map of ids
-            const auto& itID    = m_EnttsByIDs.find(id);
-            if (itID != m_EnttsByIDs.end())
-                m_EnttsByIDs.erase(itID);
-            else
-                LogErr(LOG, "there is no entt by ID: %d", id);
-
-            // remove a record from map of names
-            const auto& itName  = m_EnttsByNames.find(name);
-            if (itName != m_EnttsByNames.end())
-                m_EnttsByNames.erase(itName);
-            else
-                LogErr(LOG, "there is no entt by name: %s", name);
-
-            // remove a record from map of layers
-            const auto& itLayerVector = std::find(
-                m_EnttsByLayers[layer].begin(),
-                m_EnttsByLayers[layer].end(),
-                pEntt);
-
-            if (itLayerVector != m_EnttsByLayers[layer].end())
-            {
-                // remove a rectord from std::vector
-                *itLayerVector = m_EnttsByLayers[layer].back();
-                m_EnttsByLayers[layer].pop_back();
-            }
-            else
-            {
-                LogErr(LOG, "there is no entt by layer: %d", (int)layer);
-            }
-
-            // TODO: debug
-            LogMsg("entt is destroyed: %s", name);
-
-            // release memory from the entity 
-            delete pEntt;
-            m_Entities[i] = nullptr;
-
-            // store this idx so later we will remove record from a map
-            inactiveEnttsIdxs.push_back(i);
-        }
-    }
     
-    // remove records about deleted entities
-    auto rit = inactiveEnttsIdxs.rbegin();
-    for (; rit != inactiveEnttsIdxs.rend(); ++rit)
+    // remove a record from map of ids
+    const auto& itID    = m_EnttsByIDs.find(id);
+    if (itID != m_EnttsByIDs.end())
+        m_EnttsByIDs.erase(itID);
+    else
+        LogErr(LOG, "there is no entt by ID: %d", id);
+
+    // remove a record from map of names
+    const auto& itName  = m_EnttsByNames.find(name);
+    if (itName != m_EnttsByNames.end())
+        m_EnttsByNames.erase(itName);
+    else
+        LogErr(LOG, "there is no entt by name: %s", name);
+
+    // remove a record from map of layers
+    const auto& itLayerVector = std::find(
+        m_EnttsByLayers[layer].begin(),
+        m_EnttsByLayers[layer].end(),
+        pEntt);
+
+    if (itLayerVector != m_EnttsByLayers[layer].end())
     {
-        const int idx = *rit;
-        m_Entities.erase(m_Entities.begin() + idx);
+        // remove a rectord from std::vector
+        *itLayerVector = m_EnttsByLayers[layer].back();
+        m_EnttsByLayers[layer].pop_back();
+    }
+    else
+    {
+        LogErr(LOG, "there is no entt by layer: %d", (int)layer);
     }
 
-#if 0
-    for (int idx : inactiveEnttsIdxs)
-        m_Entities[idx] = m_Entities.back();
-        m_Entities.pop_back();
-    }
-#endif
+    // TODO: for debug
+    LogMsg("entt is destroyed: %s", name);
+
+    // find an idx of this entity in the entities array
+    const auto& it = std::find(m_Entities.begin(), m_Entities.end(), pEntt);
+    const int idx = std::distance(m_Entities.begin(), it);
+   
+    // release memory from the entity 
+    delete pEntt;
+    pEntt = nullptr;
+
+    // remove a record from entities array
+    m_Entities[idx] = m_Entities.back();
+    m_Entities.pop_back();
 }
 
 //---------------------------------------------------------
