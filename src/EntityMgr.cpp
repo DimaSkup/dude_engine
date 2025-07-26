@@ -7,6 +7,7 @@
 #include "Components/Collider.h"
 #include "Components/Sprite.h"
 #include "Components/ProjectileEmmiter.h"
+#include "Components/LifeTimer.h"
 #include "AssetMgr.h"
 #include "EventMgr.h"
 #include <stdio.h>
@@ -231,10 +232,11 @@ void EntityMgr::Update(const float deltaTime)
                 Entity* pProjectile = GetEnttByName(projectileName);
                 pProjectile->GetComponent<ProjectileEmmiter>()->SetLooped(false);
 
-                const int frameCount     = (int)12;
-                const int animationSpeed = (int)100;
-                const bool hasDirections = false;
-                const bool fixed         = false;
+                const int numFrames        = (int)12;
+                const int animationSpeed   = (int)100;
+                const int lifeTimeMs       = numFrames * animationSpeed;
+                const bool hasDirections   = false;
+                const bool fixed           = false;
 
                 const Transform* pEnemyTr  = pEnemyEntt->GetComponent<Transform>();
                 const glm::vec2 pos        = pEnemyTr->GetPosition();
@@ -242,37 +244,37 @@ void EntityMgr::Update(const float deltaTime)
                 const int       height     = pEnemyTr->GetHeight();
                 const int       halfWidth  = width >> 1;
                 const int       halfHeight = height >> 1;
-                const int       centerX = pos.x + halfWidth;
-                const int       centerY = pos.y + halfHeight;
+                const int       centerX    = pos.x + halfWidth;
+                const int       centerY    = pos.y + halfHeight;
+
+                // setup explosion's transformation initial params
+                TransformInitParams explTransform;
+                explTransform.width      = 96;
+                explTransform.height     = 96;
+                explTransform.position.x = centerX - (explTransform.width  >> 1);
+                explTransform.position.y = centerY - (explTransform.height >> 1);
+                explTransform.velocity   = {0,0};
+                explTransform.scale      = 1.0f;
+
+                // setup explosion's sprite initial params
+                SpriteInitParams explSprite;
+                explSprite.
 
                 Entity& explosionEntt = AddEntity("explosion", LAYER_OBSTACLE);
-                const int explWidth     = 96;
-                const int explHeight    = 96;
-                const int explPosX      = centerX - (explWidth >> 1);
-                const int explPosY      = centerY - (explHeight >> 1);
-                const int explVelX      = 0;
-                const int explVelY      = 0;
-                const int explScale     = 1.0f;
-
-                explosionEntt.AddComponent<Transform>(
-                    explPosX,
-                    explPosY,
-                    explVelX,
-                    explVelY,
-                    explWidth,
-                    explHeight,
-                    explScale);
-
+ 
+                explosionEntt.AddComponent<Transform>(explTransform);
                 explosionEntt.AddComponent<Sprite>(
                     "explosion_2",
-                    frameCount,
+                    numFrames,
                     animationSpeed,
                     hasDirections,
                     fixed);
 
+                // after explosion will play its animation one time we remove it
+                explosionEntt.AddComponent<LifeTimer>(lifeTimeMs);
+
                 // destroy the enemy entity
                 DestroyEntt(e.id);
-
 
                 break;
             }

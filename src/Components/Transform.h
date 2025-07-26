@@ -21,9 +21,30 @@
 #include "../../lib/glm/glm.hpp"
 
 
+
+struct TransformInitParams
+{
+    glm::vec2 position = {0,0};
+    glm::vec2 velocity = {0,0};
+    int       width    = 0;
+    int       height   = 0;
+    int       scale    = 0;
+};
+
+//---------------------------------------------------------
+
 class Transform : public IComponent
 {
 public:
+    Transform(const TransformParams& params) :
+        m_Position(params.position),
+        m_Velocity(params.velocity),
+        m_Width(params.width),
+        m_Height(params.height),
+        m_Scale(params.scale) 
+    {
+    }
+
     Transform(
         const int posX,  
         const int posY, 

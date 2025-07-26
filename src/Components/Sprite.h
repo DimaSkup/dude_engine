@@ -21,22 +21,79 @@
 #include <stdexcept>
 
 
-///////////////////////////////////////////////////////////
+struct SpriteInitParams
+{
+    const uint numFrames        = 0;
+    const uint animationSpeed   = 0;
+    const bool hasDirections    = false;
+    const bool isFixed          = true;
+};
+
+//---------------------------------------------------------
 
 class Sprite : public IComponent 
 {
 public:
 
-    Sprite(const char* assetTextureID) :
+    Sprite(const char* assetTexId, const SpriteInitParams& params) :
+        m_NumFrames(params.numFrames),
+        m_AnimationSpeed(params.animationSpeed),
+        m_IsAnimated(true),
+        m_IsFixed(params.isFixed)
+    {
+        // a constructor for animated sprites
+
+        if (IsStrEmpty(assetTexId))
+            LogErr(LOG, "input asset texture ID is empty");
+
+        if (params.hasDirections)
+        {
+            // separate animation data container for each direction
+            Animation down (0, m_NumFrames, m_AnimationSpeed);
+            Animation right(1, m_NumFrames, m_AnimationSpeed);
+            Animation left (2, m_NumFrames, m_AnimationSpeed);
+            Animation up   (3, m_NumFrames, m_AnimationSpeed);
+
+            // add animations into map to be able to switch btw them
+            m_Animations.insert({ ANIMATION_TYPE_DOWN,  down  });
+            m_Animations.insert({ ANIMATION_TYPE_RIGHT, right });
+            m_Animations.insert({ ANIMATION_TYPE_LEFT,  left  });
+            m_Animations.insert({ ANIMATION_TYPE_UP,    up    });
+            
+            m_AnimationIdx = 0;
+            m_CurrAnimationType = ANIMATION_TYPE_RIGHT;
+        }
+        else
+        {
+            Animation singleAnimation(0, params.numFrames, params.animationSpeed);
+
+            const auto& res = m_Animations.insert({ ANIMATION_TYPE_SINGLE, singleAnimation });
+            if (!res.second)
+                LogErr(LOG, "didn't manage to add a single animation into the map of animations");
+
+            m_AnimationIdx = 0;
+            m_CurrAnimationType = ANIMATION_TYPE_SINGLE;
+        }
+
+        SetTexture(assetTexId);
+        Play(m_CurrAnimationType);
+
+    }
+
+    //-----------------------------------------------------
+    // Desc:   a constructor for fixed, not animated sprite
+    // Args:   - assetTexId:  name of the texture asset
+    //-----------------------------------------------------
+    Sprite(const char* assetTexId) :
         m_IsAnimated(false),
         m_IsFixed(false)
     {
         // a constructor for static (not animated sprites)
 
-        if (IsStrEmpty(assetTextureID))
+        if (IsStrEmpty(assetTexId))
             LogErr(LOG, "input asset texture ID is empty");
 
-        SetTexture(assetTextureID);
+        SetTexture(assetTexId);
     }
 
     ///////////////////////////////////////////////////////
@@ -139,23 +196,6 @@ public:
         {
             LogErr(LOG, "there is no animation by type: %d", (int)type);
         }
-#else
-        try
-        {
-            const Animation& anim = m_Animations.at(type);
-
-            m_NumFrames         = anim.m_NumFrames;
-            m_AnimationIdx      = anim.m_Idx; 
-            m_AnimationSpeed    = anim.m_AnimationSpeed;
-            m_CurrAnimationType = type; 
-
-        }
-        catch (std::out_of_range& e)
-        {
-            LogErr(LOG, e.what());
-            LogErr(LOG, "there is no animation by type: %d", (int)type);
-        }
-#endif
     }
 
     ///////////////////////////////////////////////////////
