@@ -15,9 +15,11 @@
 #include "Components/Collider.h"
 #include "Components/TextLabel.h"
 #include "Components/ProjectileEmmiter.h"
+#include "Components/LifeTimer.h"
 #include "GameState.h"
 #include "EventMgr.h"
 
+#define SHOW_DBG_INFO_WHEN_CREATE_ENTITIES 0
 
 // init Game's static members 
 SDL_Event Game::ms_Event;
@@ -141,12 +143,13 @@ void Game::Update()
     if (m_ShowHelpScreen)
         return;
 
-    // speep the execution until we reach the target frame time in ms
-    //const int timeToWait = FRAME_TARGET_TIME - ((SDL_GetTicks() - m_TicksLastFrame));
-
-    // only call delay if we are too fast to process this frame
-    //if (timeToWait > 0 && timeToWait <= FRAME_TARGET_TIME)
-    //    SDL_Delay(timeToWait);
+    if (m_PlayerIsKilled)
+    { 
+        SetConsoleColor(RED);
+            LogMsg("\nYOU LOST :(\nTRY AGAIN!\n");
+            SetConsoleColor(RESET);
+            ProcessGameOver();
+    }
 
     // difference in ticks from last frame converted to seconds
     const uint32_t ticksNow = SDL_GetTicks();
@@ -171,6 +174,75 @@ void Game::Update()
     // clamp deltaTime to a maximum value
     deltaTime = (deltaTime > 16.6f) ? 16.6f : deltaTime;
 
+    // handle events
+    for (const Event& e : g_EventMgr.m_Events)
+    {
+        Entity* pEntt = g_EntityMgr.GetEnttByID(e.id);
+
+        switch (e.type)
+        {
+            case EVENT_TYPE_SWITCH_ANIMATION:
+            {
+                eAnimationType animType = eAnimationType((int)e.x);
+                pEntt->GetComponent<Sprite>()->Play(animType);
+                break;
+            }
+            case EVENT_TYPE_PLAYER_SHOOT:
+            {
+                Entity* pPlayer = g_EntityMgr.GetPlayer();
+                HandleEventPlayerShoot(*pPlayer);
+                break;
+            }
+            case EVENT_TYPE_PLAYER_MOVE:
+            {
+                pEntt->GetComponent<Transform>()->SetVelocity(e.x, e.y);
+                break;
+            }
+            case EVENT_TYPE_PLAYER_STOP:
+            {
+                pEntt->GetComponent<Transform>()->SetVelocity(0,0);
+                break;
+            }
+            case EVENT_TYPE_PLAYER_HIT_ENEMY_PROJECTILE:
+            {
+                m_PlayerIsKilled = true;
+                break;
+            }
+            case EVENT_TYPE_DESTROY_ENTITY:
+            {
+                g_EntityMgr.DestroyEntt(e.id);
+                break;
+            }
+            case EVENT_TYPE_KILL_ENEMY:
+            {
+                Entity* pEnemyEntt = pEntt;
+
+                PlaySound("explosion_2");
+
+                // also destroy a projectile emmiter of this enemy:
+                // find a projectile entity and set that its
+                // projectile emitter is not looped anymore (so it will be destroyed)
+                char projectileName[64]{'\0'};
+                strcat(projectileName, pEntt->GetName());
+                strcat(projectileName, "_projectile");
+
+                Entity* pProjectileEntt = g_EntityMgr.GetEnttByName(projectileName);
+                pProjectileEntt->GetComponent<ProjectileEmmiter>()->SetLooped(false);
+
+                CreateExplosion(*pEnemyEntt);
+               
+                // destroy the enemy entity
+                g_EntityMgr.DestroyEntt(e.id);
+                g_GameStates.numEnemies--;
+
+                break;
+            }
+        }
+    }
+
+    // we handled all the events so clear the list 
+    g_EventMgr.m_Events.clear();
+ 
     // update all the entities
     g_EntityMgr.Update(deltaTime);
 
@@ -189,6 +261,167 @@ void Game::Update()
 
     pFpsCount->GetComponent<TextLabel>()->SetLabelText(fpsBuf, "charriot-font");
     pDeltaTime->GetComponent<TextLabel>()->SetLabelText(deltaTimeBuf, "charriot-font");
+}
+
+//---------------------------------------------------------
+// Desc:   a handler for event when the player is shooting
+// Args:   - player: player's entity
+//---------------------------------------------------------
+void Game::HandleEventPlayerShoot(Entity& player)
+{
+    const Transform* pPlayerTransform = player.GetComponent<Transform>();
+    const Sprite*    pPlayerSprite    = player.GetComponent<Sprite>();
+
+    // compute the projectile's init position, velocity, direction
+    const glm::vec2 playerPos    = pPlayerTransform->GetPosition();
+    const int       playerWidth  = pPlayerTransform->GetWidth();
+    const int       playerHeight = pPlayerTransform->GetHeight();
+
+    // position offset of the player's bullet to create it in proper position
+    int bulletOffsetX = 0;
+    int bulletOffsetY = 0;
+
+    // define an angle of projectile emitting based on player's direction
+    int angleDeg = 0;
+
+    switch (pPlayerSprite->GetCurrAnimationType())
+    {
+        case ANIMATION_TYPE_SINGLE:
+        {
+            break;
+        }
+        case ANIMATION_TYPE_DOWN:
+        { 
+            angleDeg      = 90;  
+            bulletOffsetX = playerWidth / 2;
+            bulletOffsetY = playerHeight;
+            break;
+        }
+        case ANIMATION_TYPE_UP:    
+        {
+            angleDeg      = 270; 
+            bulletOffsetX = playerWidth / 2;
+            bulletOffsetY = 0;
+            break;
+        }
+        case ANIMATION_TYPE_RIGHT: 
+        {
+            angleDeg      = 0;   
+            bulletOffsetX = playerWidth;
+            bulletOffsetY = playerHeight / 2;
+            break;
+        }
+        case ANIMATION_TYPE_LEFT:  
+        {
+            angleDeg      = 180; 
+            bulletOffsetX = 0;
+            bulletOffsetY = playerHeight / 2;
+            break;
+        }
+    }
+
+    // generate a name for the projectile emmiter entity...
+    const EntityID bulletID = g_EntityMgr.m_LastEnttID + 1;
+    char name[64]{0};
+    sprintf(name, "player_projectile_%d", bulletID);
+
+    // ... and create it
+    Entity& bullet = g_EntityMgr.AddEntity(name, LAYER_PROJECTILE);
+
+    // setup player's bullet parameters
+    TransformInitParams trParams;
+    trParams.width  = 4;
+    trParams.height = 4;
+    trParams.pos.x  = (int)playerPos.x + bulletOffsetX - trParams.width/2;
+    trParams.pos.y  = (int)playerPos.y + bulletOffsetY - trParams.height/2;
+    trParams.vel    = {0,0};
+    trParams.scale  = 1;
+
+    constexpr int speed = 600;
+    constexpr int range = 300;
+    constexpr bool loop = false;
+
+    // add components
+    bullet.AddComponent<Transform>(trParams);
+    bullet.AddComponent<Sprite>("projectile-texture");
+
+    bullet.AddComponent<Collider>(
+        eColliderTag::FRIENDLY_PROJECTILE,
+        (int)trParams.pos.x,
+        (int)trParams.pos.y,
+        trParams.width,
+        trParams.height);
+        
+    bullet.AddComponent<ProjectileEmmiter>(speed, angleDeg, range, loop); 
+}
+
+//---------------------------------------------------------
+// Desc:   when we kill some enemy we draw an explosion in its place
+// Args:   - enemy:  an entity of enemy which we kill
+//---------------------------------------------------------
+void Game::CreateExplosion(Entity& enemy)
+{
+    const Transform* pEnemyTr  = enemy.GetComponent<Transform>();
+    const glm::vec2 pos        = pEnemyTr->GetPosition();
+
+    const int width      = pEnemyTr->GetWidth();
+    const int height     = pEnemyTr->GetHeight();
+    const int centerX    = pos.x + (width / 2);
+    const int centerY    = pos.y + (height / 2);
+
+    // setup explosion's transformation initial params
+    TransformInitParams trParams;
+    trParams.width    = 96;
+    trParams.height   = 96;
+    trParams.pos.x    = centerX - (trParams.width  >> 1);
+    trParams.pos.y    = centerY - (trParams.height >> 1);
+    trParams.vel      = {0,0};
+    trParams.scale    = 1.0f;
+
+    // setup explosion's sprite initial params
+    SpriteInitParams spriteParams;
+    spriteParams.numFrames      = 12;
+    spriteParams.animationSpeed = 100;
+    spriteParams.hasDirections  = false;
+    spriteParams.isFixed        = false;
+
+    // compute life time of explosion based on duration of full animation
+    const int lifeTimeMs = spriteParams.numFrames * spriteParams.animationSpeed;
+
+    Entity& explosion = g_EntityMgr.AddEntity("explosion", LAYER_OBSTACLE);
+    explosion.AddComponent<Transform>(trParams);
+    explosion.AddComponent<Sprite>("explosion_2", spriteParams);
+
+    // we play the explosion animation one time and then remove it
+    explosion.AddComponent<LifeTimer>(lifeTimeMs);
+}
+
+//---------------------------------------------------------
+// Desc:   a helper to play sound by its name only once
+// Args:   - soundName: a name of the sound from the sound mgr
+//---------------------------------------------------------
+void Game::PlaySound(const char* soundName)
+{
+    if (!soundName || soundName[0] == '\0')
+    {
+        LogErr(LOG, "can't play sound: input name is empty!");
+        return;
+    }
+
+    // get sound idx
+    const int soundIdx = g_AssetMgr.GetSoundIdxByName(soundName);
+
+    // try to play sound
+    int channel = 3;
+    constexpr int playTimes = 1;
+    eSoundState soundState = g_AssetMgr.PlaySound(channel, soundIdx, playTimes);
+
+    // if for any reason the channel is busy we try another one
+    while (soundState == CHANNEL_STATE_BUSY)
+    {
+        channel++;
+        soundState = g_AssetMgr.PlaySound(channel, soundIdx, playTimes);
+    }
 }
 
 //---------------------------------------------------------
@@ -215,23 +448,17 @@ void Game::HandleCameraMovement()
 
     // clamp the camera's position by X
     if (ms_Camera.x < 0)
-    {
         ms_Camera.x = 0;
-    }
+    
     if (cameraRight > g_GameStates.levelMapWidth)
-    {
         ms_Camera.x = g_GameStates.cameraMaxX;
-    }
 
     // clamp the camera's position by Y
     if (ms_Camera.y < 0)
-    {
         ms_Camera.y = 0;
-    }
+    
     if (cameraBottom > g_GameStates.levelMapHeight)
-    {
         ms_Camera.y = g_GameStates.cameraMaxY;
-    }
 
     g_GameStates.cameraPosX = ms_Camera.x;
     g_GameStates.cameraPosY = ms_Camera.y;
@@ -242,15 +469,6 @@ void Game::HandleCameraMovement()
 //---------------------------------------------------------
 void Game::CheckCollisions()
 {
-
-    if (g_EntityMgr.m_PlayerIsKilled)
-    { 
-        SetConsoleColor(RED);
-            LogMsg("\nYOU LOST :(\nTRY AGAIN!\n");
-            SetConsoleColor(RESET);
-            ProcessGameOver();
-    }
-
     const eCollisionType cType = g_EntityMgr.CheckCollisions();
 
     switch (cType)
@@ -259,28 +477,16 @@ void Game::CheckCollisions()
         {
             return;
         }
-#if 0
-        case PLAYER_ENEMY_COLLISION:
-        case PLAYER_PROJECTILE_COLLISION:
-        {
-            SetConsoleColor(RED);
-            LogMsg("\nYOU LOST :(\nTRY AGAIN!\n");
-            SetConsoleColor(RESET);
-            ProcessGameOver();
-            break;
-        }
-
-        case ENEMY_PROJECTILE_COLLISION:
-        {
-            break;
-        }
-#endif
         case PLAYER_LEVEL_COMPLETE_COLLISION:
         {
-            ProcessNextLevel(1);
-            SetConsoleColor(CYAN);
-            LogMsg("\n\nLOL, YOU WON!\n\n");
-            SetConsoleColor(RESET);
+            // if we killed them all
+            if (g_GameStates.numEnemies == 0)
+            {
+                ProcessNextLevel(1);
+                SetConsoleColor(CYAN);
+                LogMsg("\n\nLOL, YOU WON!\n\n");
+                SetConsoleColor(RESET);
+            }
             break;
         }
     }
@@ -474,12 +680,14 @@ void LoadMap(sol::table levelMap)
     const int tileMapWidth  = (int)levelMap["mapSizeX"];
     const int tileMapHeight = (int)levelMap["mapSizeY"];
 
+#if SHOW_DBG_INFO_WHEN_CREATE_ENTITIES
     printf("map tex id:               %s\n", mapTextureId.c_str());
     printf("map file:                 %s\n", mapPath.c_str());
     printf("map tile scale:           %d\n", tileScale);
     printf("map tile size:            %d\n", tileSize);
     printf("map size x (tiles count): %d\n", tileMapWidth);
     printf("map size y (tiles count): %d\n", tileMapHeight);
+#endif
 
     s_pMap = new Map(mapTextureId.c_str(), tileScale, tileSize);
     s_pMap->LoadMap(mapPath.c_str(), tileMapWidth, tileMapHeight);
@@ -507,6 +715,7 @@ void AddTransformComponent(Entity& entt, sol::table tr)
     const int scale  = (int)tr["scale"];
     // const int rotation = (int)tr["rotation"];
     
+#if SHOW_DBG_INFO_WHEN_CREATE_ENTITIES
     printf("\t\tposX:     %d\n", posX);
     printf("\t\tposY:     %d\n", posY);
     printf("\t\tvelX:     %d\n", velX);
@@ -515,6 +724,7 @@ void AddTransformComponent(Entity& entt, sol::table tr)
     printf("\t\theight:   %d\n", height);
     printf("\t\tscale:    %d\n", scale);
     //printf("\t\trotation: %d\n", rotation);
+#endif
 
     entt.AddComponent<Transform>(
         posX,
@@ -524,8 +734,6 @@ void AddTransformComponent(Entity& entt, sol::table tr)
         width,
         height,
         scale);
-    
-    LogDbg(LOG, "component \"transform\" is added");
 }
 
 //---------------------------------------------------------
@@ -545,12 +753,14 @@ void AddSpriteComponent(Entity& entt, sol::table sprite)
         const bool hasDirections = (bool)sprite["hasDirections"];
         const bool fixed         = (bool)sprite["fixed"];
 
+#if SHOW_DBG_INFO_WHEN_CREATE_ENTITIES
         printf("\t\tassetId:        %s\n", assetId.c_str());
         printf("\t\tanimated:       %d\n", animated);
         printf("\t\tframeCount:     %d\n", frameCount);
         printf("\t\tanimationSpeed: %d\n", animationSpeed);
         printf("\t\thasDirections:  %d\n", hasDirections);
         printf("\t\tfixed:          %d\n", fixed);
+#endif
 
         entt.AddComponent<Sprite>(
             assetId.c_str(),
@@ -563,13 +773,13 @@ void AddSpriteComponent(Entity& entt, sol::table sprite)
     // we want to load in a static sprite (no animation)
     else
     {
+#if SHOW_DBG_INFO_WHEN_CREATE_ENTITIES
         printf("\t\tassetId:  %s\n", assetId.c_str());
         printf("\t\tanimated: %d\n", animated);
+#endif
 
         entt.AddComponent<Sprite>(assetId.c_str());
     }
-
-    LogDbg(LOG, "component is added: sprite");
 }
 
 //---------------------------------------------------------
@@ -591,7 +801,10 @@ void AddColliderComponent(
         tag = eColliderTag::PLAYER;
 
     else if (colliderTag == "ENEMY")
+    {
         tag = eColliderTag::ENEMY;
+        g_GameStates.numEnemies++;
+    }
 
     else if (colliderTag == "PROJECTILE")
         tag = eColliderTag::PROJECTILE;
@@ -608,12 +821,15 @@ void AddColliderComponent(
     const int colliderBoxWidth = tr["width"];
     const int colliderBoxHeight = tr["height"];
 
+#if SHOW_DBG_INFO_WHEN_CREATE_ENTITIES
     // print data into console for debug
+    printf("\t\tAdd collider component:\n");
     printf("\t\tcollider tag: %s\n", colliderTag.c_str());
     printf("\t\tposX:         %d\n", colliderBoxPosX);
     printf("\t\tposY:         %d\n", colliderBoxPosY);
     printf("\t\twidth:        %d\n", colliderBoxWidth);
     printf("\t\theight:       %d\n", colliderBoxHeight);
+#endif
 
     entt.AddComponent<Collider>(
         tag, 
@@ -621,8 +837,6 @@ void AddColliderComponent(
         colliderBoxPosY,
         colliderBoxWidth,
         colliderBoxHeight);
-    
-    LogDbg(LOG, "component is added: collider");
 }
 
 //---------------------------------------------------------
@@ -638,12 +852,14 @@ void AddKeyboardComponent(Entity& entt, sol::table keyboard)
     const std::string rightKey = keyboard["right"];
     const std::string shootKey = keyboard["shoot"];
 
+#if SHOW_DBG_INFO_WHEN_CREATE_ENTITIES
+    printf("\t\tAdd keyboard component:\n");
     printf("\t\tup key:    %s\n", upKey.c_str());
     printf("\t\tleft key:  %s\n", leftKey.c_str());
     printf("\t\tdown key:  %s\n", downKey.c_str());
     printf("\t\tright key: %s\n", rightKey.c_str());
     printf("\t\tshoot key: %s\n", shootKey.c_str());
-
+#endif
    
     entt.AddComponent<KeyboardControl>(
         upKey.c_str(),
@@ -651,8 +867,6 @@ void AddKeyboardComponent(Entity& entt, sol::table keyboard)
         downKey.c_str(),
         leftKey.c_str(),
         shootKey.c_str());
-
-    LogDbg(LOG, "component is added: input (keyboard)");
 }
 
 //---------------------------------------------------------
@@ -671,6 +885,8 @@ void AddProjectileEmitterComponent(Entity& entt, sol::table emitter)
     const int  width    = emitter["width"];
     const int  height   = emitter["height"];
 
+#if SHOW_DBG_INFO_WHEN_CREATE_ENTITIES
+    printf("\t\tAdd projectile emitter component:\n");
     printf("\t\tspeed:      %d\n", speed);
     printf("\t\tangleDeg:   %d\n", angleDeg);
     printf("\t\trange:      %d\n", range);
@@ -678,6 +894,7 @@ void AddProjectileEmitterComponent(Entity& entt, sol::table emitter)
     printf("\t\tloop(bool): %d\n", loop);
     printf("\t\twidth:      %d\n", width);
     printf("\t\theight:     %d\n", height);
+#endif
 
     // create a separate projectile emiter entity
     char projectileName[64]{0};
@@ -720,8 +937,6 @@ void AddProjectileEmitterComponent(Entity& entt, sol::table emitter)
         angleDeg,
         range,
         loop);
-
-    LogDbg(LOG, "component is added: projectile emiter");
 }
 
 //---------------------------------------------------------
@@ -754,10 +969,12 @@ void LoadEntities(const sol::table entts)
             const char* name = enttName.c_str();
             layerType = eLayerType(enttData["layer"]);
 
+#if SHOW_DBG_INFO_WHEN_CREATE_ENTITIES
             SetConsoleColor(YELLOW);
             printf("entt name:   %s\n", name);
             printf("entt layer:  %d\n", (int)enttData["layer"]);
             SetConsoleColor(RESET);
+#endif
 
             // create an entity
             Entity& entt = g_EntityMgr.AddEntity(name, layerType);
@@ -774,10 +991,6 @@ void LoadEntities(const sol::table entts)
             for (const auto& keyToValue : components)
             {
                 const char* componentName = keyToValue.first.as<const char*>();
-
-                SetConsoleColor(CYAN);
-                printf("\tadd component: %s\n", componentName);
-                SetConsoleColor(RESET);
 
                    // add a sprite component to the entity
                 if (strcmp(componentName, "sprite") == 0)

@@ -8,10 +8,9 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "Entity.h"
 #include <SDL2/SDL.h>
 #include "../lib/lua/sol.hpp"
-//#include <SDL2/SDL_image.h>
-//#include <SDL2/SDL_ttf.h>
 
 
 class Game
@@ -40,17 +39,22 @@ public:
 private:
     void RenderColliderAABB() const;
 
+    void HandleEventPlayerShoot(Entity& player);
+    void CreateExplosion(Entity& enemy);
+    void PlaySound(const char* soundName);
+
 public:
     static SDL_Event ms_Event;
     static SDL_Rect  ms_Camera;
 private:
-    bool             m_Running = true;
-    bool             m_ShowAABB = false;
+    bool             m_Running        = true;
+    bool             m_ShowAABB       = false;
     bool             m_ShowHelpScreen = true;
-    uint32_t         m_PrevTicks = 0;
-    uint32_t         m_FpsCounter = 0;
-    uint32_t         m_FramesDrawn = 0;
-    float            m_FpsValue = 0;
+    bool             m_PlayerIsKilled = false;
+    uint32_t         m_PrevTicks      = 0;
+    uint32_t         m_FpsCounter     = 0;
+    uint32_t         m_FramesDrawn    = 0;
+    float            m_FpsValue       = 0;
 };
 
 #endif

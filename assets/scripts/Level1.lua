@@ -68,11 +68,11 @@ Level1 = {
     ----------------------------------------------------
     map = {
         textureAssetId = "terrain-texture-day",
-        file = "./assets/tilemaps/jungle.map",
-        scale = 2,
-        tileSize = 32,
-        mapSizeX = 25,
-        mapSizeY = 20
+        file           = "./assets/tilemaps/jungle.map",
+        scale          = 2,
+        tileSize       = 32,
+        mapSizeX       = 25,
+        mapSizeY       = 20
     },
 
 

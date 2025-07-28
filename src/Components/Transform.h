@@ -14,7 +14,7 @@
 
 #include "../GameState.h"
 #include "../EventMgr.h"
-#include "../EntityMgr.h"
+//#include "../EntityMgr.h"
 #include "../Game.h"
 #include "../IComponent.h"
 #include "../Render.h"
@@ -24,11 +24,11 @@
 
 struct TransformInitParams
 {
-    glm::vec2 position = {0,0};
-    glm::vec2 velocity = {0,0};
-    int       width    = 0;
-    int       height   = 0;
-    int       scale    = 0;
+    glm::vec2 pos    = {0,0};  // position
+    glm::vec2 vel    = {0,0};  // velocity
+    int       width  = 0;
+    int       height = 0;
+    int       scale  = 0;
 };
 
 //---------------------------------------------------------
@@ -36,9 +36,9 @@ struct TransformInitParams
 class Transform : public IComponent
 {
 public:
-    Transform(const TransformParams& params) :
-        m_Position(params.position),
-        m_Velocity(params.velocity),
+    Transform(const TransformInitParams& params) :
+        m_Position(params.pos),
+        m_Velocity(params.vel),
         m_Width(params.width),
         m_Height(params.height),
         m_Scale(params.scale) 
@@ -79,13 +79,12 @@ public:
 
         const int width  = m_Width * m_Scale;
         const int height = m_Height * m_Scale;
-        const int halfW  = width  >> 1;
-        const int halfH  = height >> 1;
 
         // compute the player's next position
         const float nextPosX = pos.x + (vel.x * deltaTime);
         const float nextPosY = pos.y + (vel.y * deltaTime);
 
+        // the scene boundaries
         const float maxX = g_GameStates.levelMapWidth;
         const float maxY = g_GameStates.levelMapHeight;
 

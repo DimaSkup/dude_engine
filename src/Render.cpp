@@ -41,6 +41,8 @@ bool Render::Initialize(
     int width = 0;
     int height = 0;
 
+    SetConsoleColor(CYAN);
+
     if (isFullscreen)
     {
         // use SDL to query what is the fullscreen max width and height
@@ -49,6 +51,10 @@ bool Render::Initialize(
 
         width  = displayMode.w;
         height = displayMode.h;
+
+        LogMsg("Fullscreen mode: ON");
+        LogMsg("Window width: %d", width);
+        LogMsg("Window height: %d", height);
     }
 
     // windowed mode
@@ -56,8 +62,13 @@ bool Render::Initialize(
     {
         width  = wndWidth;
         height = wndHeight;
+
+        LogMsg("Fullscreen mode: OFF");
+        LogMsg("Window width: %d", width);
+        LogMsg("Window height: %d", height);
     }
     
+    SetConsoleColor(RESET);
 
     // create a SDL window
     g_pWindow = SDL_CreateWindow(

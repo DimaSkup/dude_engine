@@ -38,139 +38,6 @@ void EntityMgr::ClearData()
     m_EnttsByLayers.clear();
 }
 
-
-//---------------------------------------------------------
-// Desc:   a handler for event when the player is shooting
-// Args:   - player: player's entity
-//         - mgr:    entity manager
-//---------------------------------------------------------
-void HandleEventPlayerShoot(Entity& player, EntityMgr& mgr)
-{
-    const Transform* pTransform = player.GetComponent<Transform>();
-    const Sprite*    pSprite    = player.GetComponent<Sprite>();
-
-    // compute the projectile's init position, velocity, direction
-    const glm::vec2 playerPos    = pTransform->GetPosition();
-    const int       playerWidth  = pTransform->GetWidth();
-    const int       playerHeight = pTransform->GetHeight();
-
-    int projectileOffsetX = 0;
-    int projectileOffsetY = 0;
-
-    // define an angle of projectile emitting based on player's direction
-    int angleDeg = 0;
-
-    switch (pSprite->GetCurrAnimationType())
-    {
-        case ANIMATION_TYPE_SINGLE:
-        {
-            break;
-        }
-        case ANIMATION_TYPE_DOWN:
-        { 
-            angleDeg = 90;  
-            projectileOffsetX = playerWidth / 2;
-            projectileOffsetY = playerHeight;
-            break;
-        }
-        case ANIMATION_TYPE_UP:    
-        {
-            angleDeg = 270; 
-            projectileOffsetX = playerWidth / 2;
-            projectileOffsetY = 0;
-            break;
-        }
-        case ANIMATION_TYPE_RIGHT: 
-        {
-            angleDeg = 0;   
-            projectileOffsetX = playerWidth;
-            projectileOffsetY = playerHeight / 2;
-            break;
-        }
-        case ANIMATION_TYPE_LEFT:  
-        {
-            angleDeg = 180; 
-            projectileOffsetX = 0;
-            projectileOffsetY = playerHeight / 2;
-            break;
-        }
-    }
-
-    // generate a name for the projectile emmiter entity...
-    const EntityID projectileID = mgr.m_LastEnttID + 1;
-    char name[64]{0};
-    sprintf(name, "player_projectile_%d", projectileID);
-
-    // ... and create it
-    Entity& entt = mgr.AddEntity(name, LAYER_PROJECTILE);
-
-    
-    // setup a projectile parameters
-    constexpr int width  = 4;
-    constexpr int height = 4;
-    const     int posX   = (int)playerPos.x + projectileOffsetX - width/2;
-    const     int posY   = (int)playerPos.y + projectileOffsetY - height/2;
-    constexpr int velX   = 0;
-    constexpr int velY   = 0;
-    constexpr int scale  = 1;
-
-    entt.AddComponent<Transform>(
-        posX,
-        posY,
-        velX,
-        velY,
-        width,
-        height,
-        scale);
-   
-    entt.AddComponent<Sprite>("projectile-texture");
-
-    entt.AddComponent<Collider>(
-        eColliderTag::FRIENDLY_PROJECTILE,
-        posX,
-        posY,
-        width,
-        height);
-        
-    constexpr int speed = 600;
-    constexpr int range = 300;
-    constexpr bool loop = false;
-
-    entt.AddComponent<ProjectileEmmiter>(
-        speed,
-        angleDeg,
-        range,
-        loop); 
-}
-
-//---------------------------------------------------------
-// Desc:   a helper to play sound by its name only once
-// Args:   - soundName: a name of the sound from the sound mgr
-//---------------------------------------------------------
-void PlaySound(const char* soundName)
-{
-    if (!soundName || soundName[0] == '\0')
-    {
-        LogErr(LOG, "can't play sound: input name is empty!");
-        return;
-    }
-
-    // get sound idx
-    const int soundIdx = g_AssetMgr.GetSoundIdxByName(soundName);
-
-    // try to play sound
-    int channel = 3;
-    constexpr int playTimes = 1;
-    eSoundState soundState = g_AssetMgr.PlaySound(channel, soundIdx, playTimes);
-
-    // if for any reason the channel is busy we try another one
-    while (soundState == CHANNEL_STATE_BUSY)
-    {
-        channel++;
-        soundState = g_AssetMgr.PlaySound(channel, soundIdx, playTimes);
-    }
-}
-
 //---------------------------------------------------------
 // Desc:   main updating function for the entity manager;
 //         here we update the all entities states
@@ -178,122 +45,14 @@ void PlaySound(const char* soundName)
 //---------------------------------------------------------
 void EntityMgr::Update(const float deltaTime)
 {
-    for (const Event& e : g_EventMgr.m_Events)
-    {
-        Entity* pEntt = GetEnttByID(e.id);
-
-        switch (e.type)
-        {
-            case EVENT_TYPE_SWITCH_ANIMATION:
-            {
-                eAnimationType animType = eAnimationType((int)e.x);
-                pEntt->GetComponent<Sprite>()->Play(animType);
-                break;
-            }
-            case EVENT_TYPE_PLAYER_SHOOT:
-            {
-                Entity& player = *GetPlayer();
-                HandleEventPlayerShoot(player, *this);
-                break;
-            }
-            case EVENT_TYPE_PLAYER_MOVE:
-            {
-                pEntt->GetComponent<Transform>()->SetVelocity(e.x, e.y);
-                break;
-            }
-            case EVENT_TYPE_PLAYER_STOP:
-            {
-                pEntt->GetComponent<Transform>()->SetVelocity(0,0);
-                break;
-            }
-            case EVENT_TYPE_PLAYER_HIT_ENEMY_PROJECTILE:
-            {
-                m_PlayerIsKilled = true;
-                break;
-            }
-            case EVENT_TYPE_DESTROY_ENTITY:
-            {
-                DestroyEntt(e.id);
-                break;
-            }
-            case EVENT_TYPE_KILL_ENEMY:
-            {
-                Entity* pEnemyEntt = pEntt;
-
-                PlaySound("explosion_2");
-
-                // also destroy a projectile emmiter of this enemy
-                const char* name = pEntt->GetName();
-                char projectileName[64]{'\0'};
-                sprintf(projectileName, "%s%s", name, "_projectile");
-
-                // find a projectile entity and set that its
-                // projectile emitter is not looped anymore
-                Entity* pProjectile = GetEnttByName(projectileName);
-                pProjectile->GetComponent<ProjectileEmmiter>()->SetLooped(false);
-
-                const int numFrames        = (int)12;
-                const int animationSpeed   = (int)100;
-                const int lifeTimeMs       = numFrames * animationSpeed;
-                const bool hasDirections   = false;
-                const bool fixed           = false;
-
-                const Transform* pEnemyTr  = pEnemyEntt->GetComponent<Transform>();
-                const glm::vec2 pos        = pEnemyTr->GetPosition();
-                const int       width      = pEnemyTr->GetWidth();
-                const int       height     = pEnemyTr->GetHeight();
-                const int       halfWidth  = width >> 1;
-                const int       halfHeight = height >> 1;
-                const int       centerX    = pos.x + halfWidth;
-                const int       centerY    = pos.y + halfHeight;
-
-                // setup explosion's transformation initial params
-                TransformInitParams explTransform;
-                explTransform.width      = 96;
-                explTransform.height     = 96;
-                explTransform.position.x = centerX - (explTransform.width  >> 1);
-                explTransform.position.y = centerY - (explTransform.height >> 1);
-                explTransform.velocity   = {0,0};
-                explTransform.scale      = 1.0f;
-
-                // setup explosion's sprite initial params
-                SpriteInitParams explSprite;
-                explSprite.
-
-                Entity& explosionEntt = AddEntity("explosion", LAYER_OBSTACLE);
- 
-                explosionEntt.AddComponent<Transform>(explTransform);
-                explosionEntt.AddComponent<Sprite>(
-                    "explosion_2",
-                    numFrames,
-                    animationSpeed,
-                    hasDirections,
-                    fixed);
-
-                // after explosion will play its animation one time we remove it
-                explosionEntt.AddComponent<LifeTimer>(lifeTimeMs);
-
-                // destroy the enemy entity
-                DestroyEntt(e.id);
-
-                break;
-            }
-        }
-    }
-
-    // we handled all the events so clear the list 
-    g_EventMgr.m_Events.clear();
-    
-    //DestroyInactiveEntts();
-
-    // update each component of each entity
     for (Entity* pEntt : m_Entities)
-    {
         pEntt->Update(deltaTime);
-    }
-
 }
 
+//---------------------------------------------------------
+// Desc:   completely destroy an entity by input ID
+// Args:   - id:  entity identifier
+//---------------------------------------------------------
 void EntityMgr::DestroyEntt(const EntityID id)
 {
     Entity* pEntt = GetEnttByID(id);
@@ -524,14 +283,16 @@ eCollisionType EntityMgr::CheckCollisions() const
                 {
                     switch (cTag2)
                     {
-                //        case ENEMY:          return PLAYER_ENEMY_COLLISION;
                         case PROJECTILE:    
                         {
                             const EntityID playerID = pCollider1->GetOwner()->GetID();
                             g_EventMgr.AddEvent(EventPlayerHitEnemyProjectile(playerID));
                             break;
                         }
-                //        case LEVEL_COMPLETE: return PLAYER_LEVEL_COMPLETE_COLLISION;
+                        case LEVEL_COMPLETE: 
+                        {
+                            return PLAYER_LEVEL_COMPLETE_COLLISION;
+                        }
                     } 
                 }
 

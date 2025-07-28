@@ -23,29 +23,33 @@
 
 struct SpriteInitParams
 {
-    const uint numFrames        = 0;
-    const uint animationSpeed   = 0;
-    const bool hasDirections    = false;
-    const bool isFixed          = true;
+    uint numFrames        = 0;
+    uint animationSpeed   = 0;
+    bool hasDirections    = false;
+    bool isFixed          = true;
 };
 
-//---------------------------------------------------------
+//===================================================================
 
 class Sprite : public IComponent 
 {
 public:
 
+    //-----------------------------------------------------
+    // Desc:   a constructor for animated sprites
+    // Args:   - assetTexId:  identifier of the sprite sheet
+    //         - params:      parameters for sprite component initialization
+    //-----------------------------------------------------
     Sprite(const char* assetTexId, const SpriteInitParams& params) :
         m_NumFrames(params.numFrames),
         m_AnimationSpeed(params.animationSpeed),
         m_IsAnimated(true),
         m_IsFixed(params.isFixed)
     {
-        // a constructor for animated sprites
-
         if (IsStrEmpty(assetTexId))
             LogErr(LOG, "input asset texture ID is empty");
 
+        // add animations for different directions
         if (params.hasDirections)
         {
             // separate animation data container for each direction
@@ -63,11 +67,13 @@ public:
             m_AnimationIdx = 0;
             m_CurrAnimationType = ANIMATION_TYPE_RIGHT;
         }
+
+        // add an animation with no directions
         else
         {
-            Animation singleAnimation(0, params.numFrames, params.animationSpeed);
+            Animation anim(0, params.numFrames, params.animationSpeed);
 
-            const auto& res = m_Animations.insert({ ANIMATION_TYPE_SINGLE, singleAnimation });
+            const auto& res = m_Animations.insert({ ANIMATION_TYPE_SINGLE, anim });
             if (!res.second)
                 LogErr(LOG, "didn't manage to add a single animation into the map of animations");
 
@@ -77,7 +83,6 @@ public:
 
         SetTexture(assetTexId);
         Play(m_CurrAnimationType);
-
     }
 
     //-----------------------------------------------------
@@ -174,7 +179,6 @@ public:
     // ----------------------------------------------------
     void Play(const eAnimationType type)
     {
-#if 1
         if (m_Animations.empty())
         {
             LogErr(LOG, "std::map of animations is empty!");
