@@ -16,6 +16,11 @@ else
 end
 ]]
 
+local enemyBulletSpeed = 280
+local tankBulletWidth = 8
+local tankBulletHeight = 8
+--local armyBulletReloadTime = 
+
 Level1 = {
     ----------------------------------------------------
     -- Table to define the list of assets
@@ -69,7 +74,7 @@ Level1 = {
     map = {
         textureAssetId = "terrain-texture-day",
         file           = "./assets/tilemaps/jungle.map",
-        scale          = 2,
+        scale          = 4,
         tileSize       = 32,
         mapSizeX       = 25,
         mapSizeY       = 20
@@ -95,7 +100,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -126,8 +131,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 240,
-                        y = 115
+                        x = 480,
+                        y = 230,
                     },
                     velocity = {
                         x = 0,
@@ -135,7 +140,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -150,8 +155,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1395,
-                        y = 495
+                        x = 1395*2,
+                        y = 495*2
                     },
                     velocity = {
                         x = 0,
@@ -159,7 +164,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -177,8 +182,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 650,
-                        y = 405
+                        x = 650*2,
+                        y = 405*2
                     },
                     velocity = {
                         x = 0,
@@ -186,7 +191,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -197,11 +202,11 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 300,
                     angle = 180,
-                    width = 4,
-                    height = 4,
+                    width  = tankBulletWidth,
+                    height = tankBulletHeight,
                     shouldLoop = true,
                     textureAssetId = "projectile-texture"
                 }
@@ -213,8 +218,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 660,
-                        y = 535
+                        x = 660*2,
+                        y = 535*2
                     },
                     velocity = {
                         x = 0,
@@ -222,7 +227,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -233,11 +238,11 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 300,
                     angle = 90,
-                    width = 4,
-                    height = 4,
+                    width = tankBulletWidth,
+                    height = tankBulletHeight,
                     shouldLoop = true,
                     textureAssetId = "projectile-texture"
                 }
@@ -249,8 +254,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 470,
-                        y = 390
+                        x = 470*2,
+                        y = 390*2
                     },
                     velocity = {
                         x = 0,
@@ -258,7 +263,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -269,11 +274,11 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 400,
                     angle = 0,
-                    width = 4,
-                    height = 4,
+                    width = tankBulletWidth,
+                    height = tankBulletHeight,
                     shouldLoop = true,
                     textureAssetId = "projectile-texture"
                 }
@@ -285,8 +290,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 203,
-                        y = 1088
+                        x = 203*2,
+                        y = 1088*2
                     },
                     velocity = {
                         x = 0,
@@ -294,7 +299,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -305,11 +310,11 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 0,
-                    width = 4,
-                    height = 4,
+                    width = tankBulletWidth,
+                    height = tankBulletHeight,
                     shouldLoop = true,
                     textureAssetId = "projectile-texture"
                 }
@@ -321,8 +326,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 115,
-                        y = 760
+                        x = 115*2,
+                        y = 760*2
                     },
                     velocity = {
                         x = 0,
@@ -330,7 +335,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -341,11 +346,11 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 0,
-                    width = 4,
-                    height = 4,
+                    width = tankBulletWidth,
+                    height = tankBulletHeight,
                     shouldLoop = true,
                     textureAssetId = "projectile-texture"
                 }
@@ -357,8 +362,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 515,
-                        y = 665
+                        x = 515*2,
+                        y = 665*2
                     },
                     velocity = {
                         x = 0,
@@ -366,7 +371,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -377,11 +382,11 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 180,
-                    width = 4,
-                    height = 4,
+                    width = tankBulletWidth,
+                    height = tankBulletHeight,
                     shouldLoop = true,
                     textureAssetId = "projectile-texture"
                 }
@@ -393,8 +398,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 920,
-                        y = 160
+                        x = 920*2,
+                        y = 160*2
                     },
                     velocity = {
                         x = 0,
@@ -402,7 +407,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -413,11 +418,11 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 90,
-                    width = 4,
-                    height = 4,
+                    width = tankBulletWidth,
+                    height = tankBulletHeight,
                     shouldLoop = true,
                     textureAssetId = "projectile-texture"
                 }
@@ -429,8 +434,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1120,
-                        y = 525
+                        x = 1120*2,
+                        y = 525*2
                     },
                     velocity = {
                         x = 0,
@@ -438,7 +443,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -449,10 +454,12 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 0,
-
+                    width = tankBulletWidth,
+                    height = tankBulletHeight,
+                    shouldLoop = true,
                     textureAssetId = "projectile-texture"
                 }
             }
@@ -463,8 +470,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 243,
-                        y = 497
+                        x = 243*2,
+                        y = 497*2
                     },
                     velocity = {
                         x = 0,
@@ -472,7 +479,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -483,7 +490,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 1000,
                     angle = 270,
                     width = 4,
@@ -499,8 +506,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 111,
-                        y = 993
+                        x = 111*2,
+                        y = 993*2
                     },
                     velocity = {
                         x = 0,
@@ -508,7 +515,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -519,7 +526,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 90,
                     width = 4,
@@ -535,8 +542,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 760,
-                        y = 200
+                        x = 760*2,
+                        y = 200*2
                     },
                     velocity = {
                         x = 0,
@@ -544,7 +551,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -555,7 +562,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 180,
                     width = 4,
@@ -571,8 +578,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1361,
-                        y = 222
+                        x = 1361*2,
+                        y = 222*2
                     },
                     velocity = {
                         x = 0,
@@ -580,7 +587,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -591,7 +598,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 90,
                     width = 4,
@@ -607,8 +614,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1220,
-                        y = 760
+                        x = 1220*2,
+                        y = 760*2
                     },
                     velocity = {
                         x = 0,
@@ -616,7 +623,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -627,7 +634,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 270,
                     width = 4,
@@ -643,8 +650,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1170,
-                        y = 790
+                        x = 1170*2,
+                        y = 790*2
                     },
                     velocity = {
                         x = 0,
@@ -652,7 +659,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -663,7 +670,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 500,
                     angle = 270,
                     width = 4,
@@ -679,8 +686,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 460,
-                        y = 445
+                        x = 460*2,
+                        y = 445*2
                     },
                     velocity = {
                         x = 0,
@@ -688,7 +695,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -699,7 +706,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 1000,
                     angle = 225,
                     width = 4,
@@ -715,8 +722,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 645,
-                        y = 787
+                        x = 645*2,
+                        y = 787*2
                     },
                     velocity = {
                         x = 0,
@@ -724,7 +731,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -735,7 +742,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 1000,
                     angle = math.random(360),
                     width = 4,
@@ -751,8 +758,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 645,
-                        y = 740
+                        x = 645*2,
+                        y = 740*2
                     },
                     velocity = {
                         x = 0,
@@ -760,7 +767,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -771,7 +778,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 1000,
                     angle = math.random(360),
                     width = 4,
@@ -787,8 +794,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 881,
-                        y = 482
+                        x = 881*2,
+                        y = 482*2
                     },
                     velocity = {
                         x = 0,
@@ -796,7 +803,7 @@ Level1 = {
                     },
                     width = 32,
                     height = 32,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -807,7 +814,7 @@ Level1 = {
                     tag = "ENEMY"
                 },
                 projectileEmitter = {
-                    speed = 70,
+                    speed = enemyBulletSpeed,
                     range = 1000,
                     angle = math.random(360),
                     width = 4,
@@ -823,8 +830,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 700,
-                        y = 380
+                        x = 700*2,
+                        y = 380*2
                     },
                     velocity = {
                         x = 0,
@@ -832,7 +839,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -850,8 +857,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 680,
-                        y = 365
+                        x = 680*2,
+                        y = 365*2
                     },
                     velocity = {
                         x = 0,
@@ -859,7 +866,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -877,8 +884,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 200,
-                        y = 480
+                        x = 200*2,
+                        y = 480*2
                     },
                     velocity = {
                         x = 0,
@@ -886,7 +893,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -904,8 +911,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 310,
-                        y = 490
+                        x = 310*2,
+                        y = 490*2
                     },
                     velocity = {
                         x = 0,
@@ -913,7 +920,7 @@ Level1 = {
                     },
                     width = 18,
                     height = 22,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -931,8 +938,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 295,
-                        y = 495
+                        x = 295*2,
+                        y = 495*2
                     },
                     velocity = {
                         x = 0,
@@ -940,7 +947,7 @@ Level1 = {
                     },
                     width = 18,
                     height = 22,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -958,8 +965,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 370,
-                        y = 480
+                        x = 370*2,
+                        y = 480*2
                     },
                     velocity = {
                         x = 0,
@@ -967,7 +974,7 @@ Level1 = {
                     },
                     width = 18,
                     height = 22,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -985,8 +992,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 214,
-                        y = 982
+                        x = 214*2,
+                        y = 982*2
                     },
                     velocity = {
                         x = 0,
@@ -994,7 +1001,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1012,8 +1019,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 182,
-                        y = 943
+                        x = 182*2,
+                        y = 943*2
                     },
                     velocity = {
                         x = 0,
@@ -1021,7 +1028,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1039,8 +1046,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 86,
-                        y = 1064
+                        x = 86*2,
+                        y = 1064*2
                     },
                     velocity = {
                         x = 0,
@@ -1048,7 +1055,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1066,8 +1073,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 171,
-                        y = 492
+                        x = 171*2,
+                        y = 492*2
                     },
                     velocity = {
                         x = 0,
@@ -1075,7 +1082,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1093,8 +1100,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1020,
-                        y = 103
+                        x = 1020*2,
+                        y = 103*2
                     },
                     velocity = {
                         x = 0,
@@ -1102,7 +1109,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1120,8 +1127,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1117,
-                        y = 100
+                        x = 1117*2,
+                        y = 100*2
                     },
                     velocity = {
                         x = 0,
@@ -1129,7 +1136,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1147,8 +1154,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1130,
-                        y = 115
+                        x = 1130*2,
+                        y = 115*2
                     },
                     velocity = {
                         x = 0,
@@ -1156,7 +1163,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1174,8 +1181,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1270,
-                        y = 190
+                        x = 1270*2,
+                        y = 190*2
                     },
                     velocity = {
                         x = 0,
@@ -1183,7 +1190,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1201,8 +1208,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1280,
-                        y = 205
+                        x = 1280*2,
+                        y = 205*2
                     },
                     velocity = {
                         x = 0,
@@ -1210,7 +1217,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1228,8 +1235,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1060,
-                        y = 745
+                        x = 1060*2,
+                        y = 745*2
                     },
                     velocity = {
                         x = 0,
@@ -1237,7 +1244,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1255,8 +1262,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1075,
-                        y = 760
+                        x = 1075*2,
+                        y = 760*2
                     },
                     velocity = {
                         x = 0,
@@ -1264,7 +1271,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1282,8 +1289,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1090,
-                        y = 760
+                        x = 1090*2,
+                        y = 760*2
                     },
                     velocity = {
                         x = 0,
@@ -1291,7 +1298,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1309,8 +1316,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1285,
-                        y = 173
+                        x = 1285*2,
+                        y = 173*2
                     },
                     velocity = {
                         x = 0,
@@ -1318,7 +1325,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1336,8 +1343,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 1036,
-                        y = 93
+                        x = 1036*2,
+                        y = 93*2
                     },
                     velocity = {
                         x = 0,
@@ -1345,7 +1352,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 32,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1363,8 +1370,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 360,
-                        y = 450
+                        x = 360*2,
+                        y = 400*2
                     },
                     velocity = {
                         x = 0,
@@ -1372,7 +1379,7 @@ Level1 = {
                     },
                     width = 24,
                     height = 24,
-                    scale = 1,
+                    scale = 4,
                     rotation = 0
                 },
                 sprite = {
@@ -1390,8 +1397,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 450,
-                        y = 380
+                        x = 450*2,
+                        y = 380*2
                     },
                     velocity = {
                         x = 0,
@@ -1399,7 +1406,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 16,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -1417,8 +1424,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 435,
-                        y = 400
+                        x = 435*2,
+                        y = 400*2
                     },
                     velocity = {
                         x = 0,
@@ -1426,7 +1433,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 16,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -1444,8 +1451,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 115,
-                        y = 637
+                        x = 115*2,
+                        y = 637*2
                     },
                     velocity = {
                         x = 0,
@@ -1453,7 +1460,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 16,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -1471,8 +1478,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 124,
-                        y = 660
+                        x = 124*2,
+                        y = 660*2
                     },
                     velocity = {
                         x = 0,
@@ -1480,7 +1487,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 16,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -1498,8 +1505,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 116,
-                        y = 827
+                        x = 116*2,
+                        y = 827*2
                     },
                     velocity = {
                         x = 0,
@@ -1507,7 +1514,7 @@ Level1 = {
                     },
                     width = 16,
                     height = 16,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {
@@ -1525,8 +1532,8 @@ Level1 = {
             components = {
                 transform = {
                     position = {
-                        x = 720,
-                        y = 15
+                        x = 720*2,
+                        y = 15*2
                     },
                     velocity = {
                         x = 0,
@@ -1534,7 +1541,7 @@ Level1 = {
                     },
                     width = 64,
                     height = 64,
-                    scale = 1,
+                    scale = 2,
                     rotation = 0
                 },
                 sprite = {

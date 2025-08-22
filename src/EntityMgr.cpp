@@ -285,8 +285,9 @@ eCollisionType EntityMgr::CheckCollisions() const
                     {
                         case PROJECTILE:    
                         {
-                            const EntityID playerID = pCollider1->GetOwner()->GetID();
-                            g_EventMgr.AddEvent(EventPlayerHitEnemyProjectile(playerID));
+                            //const EntityID playerID = pCollider1->GetOwner()->GetID();
+                            const EntityID projectileID = pCollider2->GetOwner()->GetID();
+                            g_EventMgr.AddEvent(EventPlayerHitEnemyProjectile(projectileID));
                             break;
                         }
                         case LEVEL_COMPLETE: 

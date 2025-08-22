@@ -95,6 +95,47 @@ void Game::Initialize()
         playTimes+1);
 #endif
 
+    const int halfWndWidth  = Render::GetWndWidth() / 2;
+    const int halfWndHeight = Render::GetWndHeight() / 2;
+
+    const int lifeSpriteWidth = 32;
+    const int lifeSpriteHeight = 32;
+    
+    const int posX[3] =
+    {
+        halfWndWidth - (int)(1.5f * lifeSpriteWidth) - 10,
+        halfWndWidth - lifeSpriteWidth/2,
+        halfWndWidth + lifeSpriteWidth/2 + 10
+    };
+    const int posY = 10;
+
+    TransformInitParams trParams;
+    trParams.width  = lifeSpriteWidth;
+    trParams.height = lifeSpriteHeight;
+    trParams.vel    = {0,0};
+    trParams.scale  = 1;
+
+    SpriteInitParams spriteParams;
+    spriteParams.numFrames = 1;
+    spriteParams.isFixed = true;
+
+    Entity& lifeSprite1 = g_EntityMgr.AddEntity("life_1", LAYER_PROJECTILE);
+    Entity& lifeSprite2 = g_EntityMgr.AddEntity("life_2", LAYER_PROJECTILE);
+    Entity& lifeSprite3 = g_EntityMgr.AddEntity("life_3", LAYER_PROJECTILE);
+
+    trParams.pos = { posX[0], posY };
+    lifeSprite1.AddComponent<Transform>(trParams);
+
+    trParams.pos = { posX[1], posY };
+    lifeSprite2.AddComponent<Transform>(trParams);
+
+    trParams.pos = { posX[2], posY };
+    lifeSprite3.AddComponent<Transform>(trParams);
+
+    lifeSprite1.AddComponent<Sprite>("chopper-texture", spriteParams);
+    lifeSprite2.AddComponent<Sprite>("chopper-texture", spriteParams);
+    lifeSprite3.AddComponent<Sprite>("chopper-texture", spriteParams);
+
     LogMsg(LOG, "The game is initialized!");
 }
 
@@ -152,29 +193,59 @@ void Game::Update()
     }
 
     // difference in ticks from last frame converted to seconds
-    const uint32_t ticksNow = SDL_GetTicks();
-    const uint32_t diff = (ticksNow - m_PrevTicks);
+    const uint32_t ticksNow     = SDL_GetTicks();
+    const uint32_t deltaTimeMs  = (ticksNow - m_PrevTicks);
+    const float    deltaTimeSec = (float)deltaTimeMs * 0.001f; 
 
-    m_FpsCounter += diff;
-    m_FramesDrawn++;
-
-    float deltaTime = (float)diff * 0.001f; 
+    // clamp deltaTime to a maximum value
+    //deltaTime = (deltaTime > 16.6f) ? 16.6f : deltaTime;
 
     // set the new ticks count for the current frame to be used in the next pass
     m_PrevTicks = ticksNow;
 
-    // compute actual fps value if necessary
-    if (m_FpsCounter >= 1000)
+    m_TimeMs += deltaTimeMs;
+    m_NumDrawnFrames++;
+
+    // compute actual fps value if need
+    if (m_TimeMs >= 1000)
     {
-        m_FpsValue = (float)m_FramesDrawn / (float)(m_FpsCounter * 0.001f);
-        m_FpsCounter = 0;
-        m_FramesDrawn = 0;
+        m_FpsValue       = m_NumDrawnFrames;
+        m_TimeMs         = 0;
+        m_NumDrawnFrames = 0;
     }
  
-    // clamp deltaTime to a maximum value
-    deltaTime = (deltaTime > 16.6f) ? 16.6f : deltaTime;
+    HandleEvents();
+    g_EntityMgr.Update(deltaTimeSec);
 
-    // handle events
+    HandleCameraMovement();
+    CheckCollisions();
+
+    UpdateUIText(deltaTimeMs);
+}
+
+//---------------------------------------------------------
+// Desc:  update text on the screen
+//---------------------------------------------------------
+void Game::UpdateUIText(const uint32_t dtMs)
+{
+    Entity* pFpsCount  = g_EntityMgr.GetEnttByName("fps");
+    Entity* pDeltaTime = g_EntityMgr.GetEnttByName("delta time");
+
+    char fpsBuf[32]{'\0'};
+    char deltaTimeBuf[32]{'\0'};
+
+    sprintf(fpsBuf, "Fps: %d", (int)m_FpsValue);
+    sprintf(deltaTimeBuf, "Delta time: %d ms", (int)dtMs);
+
+    pFpsCount->GetComponent<TextLabel>()->SetLabelText(fpsBuf, "charriot-font");
+    pDeltaTime->GetComponent<TextLabel>()->SetLabelText(deltaTimeBuf, "charriot-font");
+}
+
+//---------------------------------------------------------
+// Desc:  handle all the events from the events queue
+//---------------------------------------------------------
+void Game::HandleEvents()
+{
     for (const Event& e : g_EventMgr.m_Events)
     {
         Entity* pEntt = g_EntityMgr.GetEnttByID(e.id);
@@ -205,7 +276,21 @@ void Game::Update()
             }
             case EVENT_TYPE_PLAYER_HIT_ENEMY_PROJECTILE:
             {
-                m_PlayerIsKilled = true;
+                char name[16]{'\0'};
+                sprintf(name, "%s%d", "life_", m_NumLifes);
+
+                Entity* pEntt = g_EntityMgr.GetEnttByName(name);
+                if (pEntt)
+                {
+                    g_EntityMgr.DestroyEntt(pEntt->GetID());
+                }
+
+                m_NumLifes--;
+                g_EntityMgr.DestroyEntt(e.id);
+
+                if (m_NumLifes == 0)
+                    m_PlayerIsKilled = true;
+
                 break;
             }
             case EVENT_TYPE_DESTROY_ENTITY:
@@ -227,7 +312,9 @@ void Game::Update()
                 strcat(projectileName, "_projectile");
 
                 Entity* pProjectileEntt = g_EntityMgr.GetEnttByName(projectileName);
-                pProjectileEntt->GetComponent<ProjectileEmmiter>()->SetLooped(false);
+
+                if (pProjectileEntt)
+                    pProjectileEntt->GetComponent<ProjectileEmmiter>()->SetLooped(false);
 
                 CreateExplosion(*pEnemyEntt);
                
@@ -241,27 +328,10 @@ void Game::Update()
     }
 
     // we handled all the events so clear the list 
-    g_EventMgr.m_Events.clear();
- 
-    // update all the entities
-    g_EntityMgr.Update(deltaTime);
-
-    HandleCameraMovement();
-    CheckCollisions();
-
-    // update UI text
-    Entity* pFpsCount  = g_EntityMgr.GetEnttByName("fps");
-    Entity* pDeltaTime = g_EntityMgr.GetEnttByName("delta time");
-
-    char fpsBuf[32]{'\0'};
-    char deltaTimeBuf[32]{'\0'};
-
-    sprintf(fpsBuf, "Fps: %d", (int)m_FpsValue);
-    sprintf(deltaTimeBuf, "Delta time: %d ms", diff);
-
-    pFpsCount->GetComponent<TextLabel>()->SetLabelText(fpsBuf, "charriot-font");
-    pDeltaTime->GetComponent<TextLabel>()->SetLabelText(deltaTimeBuf, "charriot-font");
+    g_EventMgr.m_Events.clear(); 
 }
+
+
 
 //---------------------------------------------------------
 // Desc:   a handler for event when the player is shooting
@@ -335,10 +405,10 @@ void Game::HandleEventPlayerShoot(Entity& player)
     trParams.pos.x  = (int)playerPos.x + bulletOffsetX - trParams.width/2;
     trParams.pos.y  = (int)playerPos.y + bulletOffsetY - trParams.height/2;
     trParams.vel    = {0,0};
-    trParams.scale  = 1;
+    trParams.scale  = 2;
 
-    constexpr int speed = 600;
-    constexpr int range = 300;
+    constexpr int speed = 800;
+    constexpr int range = 600;
     constexpr bool loop = false;
 
     // add components
@@ -373,10 +443,14 @@ void Game::CreateExplosion(Entity& enemy)
     TransformInitParams trParams;
     trParams.width    = 96;
     trParams.height   = 96;
-    trParams.pos.x    = centerX - (trParams.width  >> 1);
-    trParams.pos.y    = centerY - (trParams.height >> 1);
+    trParams.scale    = 2.0f;
+    
+    const int scaledWidth  = trParams.width * trParams.scale;
+    const int scaledHeight = trParams.height * trParams.scale;
+
+    trParams.pos.x    = centerX - (scaledWidth  >> 1);
+    trParams.pos.y    = centerY - (scaledHeight >> 1);
     trParams.vel      = {0,0};
-    trParams.scale    = 1.0f;
 
     // setup explosion's sprite initial params
     SpriteInitParams spriteParams;

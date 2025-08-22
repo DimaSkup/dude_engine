@@ -23,13 +23,17 @@ public:
     void ProcessInput();
 
     void Update();
+    void UpdateUIText(const uint32_t dtMs);
+    void HandleEvents();
+    void HandleCameraMovement();
+    
+
     void Destroy();
 
     void Render();
     void RenderFont();
 
     void LoadLevel(const int levelNumber);
-    void HandleCameraMovement();
     void CheckCollisions();
 
     void ProcessNextLevel(const int levelNumber);
@@ -46,15 +50,17 @@ private:
 public:
     static SDL_Event ms_Event;
     static SDL_Rect  ms_Camera;
+
 private:
     bool             m_Running        = true;
     bool             m_ShowAABB       = false;
     bool             m_ShowHelpScreen = true;
     bool             m_PlayerIsKilled = false;
     uint32_t         m_PrevTicks      = 0;
-    uint32_t         m_FpsCounter     = 0;
-    uint32_t         m_FramesDrawn    = 0;
+    uint32_t         m_TimeMs         = 0;
+    uint32_t         m_NumDrawnFrames = 0;
     float            m_FpsValue       = 0;
+    int              m_NumLifes       = 3;
 };
 
 #endif

@@ -23,8 +23,8 @@
 
 struct SpriteInitParams
 {
-    uint numFrames        = 0;
-    uint animationSpeed   = 0;
+    uint numFrames        = 1;
+    uint animationSpeed   = 1;
     bool hasDirections    = false;
     bool isFixed          = true;
 };
